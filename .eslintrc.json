@@ -1,0 +1,17 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion":  2018,
+        "sourceType":  "module"
+    },
+    "extends": [
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+        "no-trailing-spaces": "error",
+        "@typescript-eslint/explicit-member-accessibility": "off"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ]
+}

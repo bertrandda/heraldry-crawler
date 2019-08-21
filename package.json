@@ -1,0 +1,28 @@
+{
+  "name": "heraldry-crawler",
+  "version": "1.0.0",
+  "description": "Index heraldry data from Wikipedia",
+  "main": "dist/index.js",
+  "scripts": {
+    "typeorm": "ts-node ./node_modules/.bin/typeorm",
+    "start": "ts-node src/index.ts",
+    "lint": "eslint ./src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bertrand d'Aure",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "cheerio": "^1.0.0-rc.3",
+    "sqlite3": "^4.0.9",
+    "typeorm": "^0.2.18"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.11",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "eslint": "^5.16.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.1"
+  }
+}
