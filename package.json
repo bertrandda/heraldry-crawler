@@ -12,13 +12,17 @@
   "author": "Bertrand d'Aure",
   "license": "MIT",
   "dependencies": {
+    "algoliasearch": "^3.33.0",
     "axios": "^0.19.0",
     "cheerio": "^1.0.0-rc.3",
+    "dotenv": "^8.1.0",
     "sqlite3": "^4.0.9",
     "typeorm": "^0.2.18"
   },
   "devDependencies": {
+    "@types/algoliasearch": "^3.30.17",
     "@types/cheerio": "^0.22.11",
+    "@types/dotenv": "^6.1.1",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
     "eslint": "^5.16.0",
