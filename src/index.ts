@@ -32,7 +32,7 @@ async function main(): Promise<void> {
     await MunicipalityArmorial.crawlPage(emblemRepo)
 
     const client = algoliasearch(ALGOLIA_APPLICATION_ID, ALGOLIA_API_KEY)
-    const index = client.initIndex('emblems')
+    const index = client.initIndex(process.env.ALGOLIA_INDEX || 'emblems')
 
     index.setSettings({
         searchableAttributes: [

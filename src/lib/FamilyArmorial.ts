@@ -18,7 +18,7 @@ export class FamilyArmorial {
             $('sup').remove()
 
             $('.wikitable tbody tr').each(async (i: number, elem: CheerioElement): Promise<boolean> => {
-                if (i > 10) return false
+                if (process.env.NODE_ENV !== 'prod' && i > 10) return false
                 if ($(elem).find('b').first().text() === 'Figure') return false
 
                 const emblemName = $(elem).find('b').first().text()

@@ -21,7 +21,7 @@ export class MunicipalityArmorial {
             })
 
             await Promise.all(urls.map(async (url, i): Promise<void> => {
-                if (i > 3) return
+                if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
                 let $1: CheerioStatic
                 const page = await axios.get('https://fr.wikipedia.org/' + url)
@@ -30,7 +30,7 @@ export class MunicipalityArmorial {
                 $1('sup').remove()
 
                 $1('.wikitable').each(async (i, elem): Promise<boolean> => {
-                    if (i > 5) return false
+                    if (process.env.NODE_ENV !== 'prod' && i > 5) return false
 
                     const emblemName = $1(elem).find('caption a').text()
                     let emblem
