@@ -32,7 +32,7 @@ export class MunicipalityArmorial {
                 $1('.wikitable').each(async (i, elem): Promise<boolean> => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
 
-                    const emblemName = $1(elem).find('caption a').text()
+                    const emblemName = $1(elem).find('caption a').text().trim()
                     let emblem
                     let updated = false
 

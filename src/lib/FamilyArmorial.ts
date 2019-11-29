@@ -9,6 +9,37 @@ export class FamilyArmorial {
 
     private static armorialName = 'family'
 
+    private static extractName = ($: CheerioStatic, body: Cheerio): string => {
+        const names = ['p', 'ul', 'dl'].map((selector): string => {
+            const elems = $(body).find(selector)
+            let i = 0;
+            while (i < elems.length) {
+                if (elems.eq(i).text().trim().length !== 0) {
+                    return $(body).text().split(elems.eq(i).text())[0].trim()
+                }
+                i++
+            }
+            return $(body).text().trim()
+        })
+
+        return names.reduce((a, b): string => a.length < b.length ? a : b).replace(/ +(?= )/g, '');
+    }
+
+    private static extractDescriptions = ($: CheerioStatic, body: Cheerio): { html: string; text: string } => {
+        const descriptions = ['p', 'ul', 'dl'].map((selector): { html: string; text: string } => {
+            const blazon = $(body)
+            blazon.find('.bandeau-niveau-detail').remove()
+            const separator = $(blazon).find(selector).eq(0)
+
+            return {
+                html: `<${selector}>${separator.html()}${($(blazon).html() || '').split(separator.html() || '')[1]}`,
+                text: `${separator.text()}${($(blazon).text()).split(separator.text())[1]}`.trim().replace(/\s{2,}/g, ' '),
+            }
+        })
+
+        return descriptions.reduce((a, b): { html: string; text: string } => a.text.length > b.text.length ? a : b);
+    }
+
     public static async crawlPage(repository: Repository<Emblem>): Promise<boolean> {
         let $: CheerioStatic
         await Promise.all(FamilyArmorial.armorialUrls.map(async (url): Promise<void> => {
@@ -18,10 +49,10 @@ export class FamilyArmorial {
             $('sup').remove()
 
             $('.wikitable tbody tr').each(async (i: number, elem: CheerioElement): Promise<boolean> => {
-                if (process.env.NODE_ENV !== 'prod' && i > 10) return false
-                if ($(elem).find('b').first().text() === 'Figure') return false
+                if (process.env.NODE_ENV !== 'prod' && i > 30) return false
+                if ($(elem).find('th').first().text() === 'Figure') return false
 
-                const emblemName = $(elem).find('b').first().text()
+                const emblemName = FamilyArmorial.extractName($, $(elem).find('td').next())
                 let emblem
                 let updated = false
 
@@ -41,20 +72,12 @@ export class FamilyArmorial {
                     updated = true
                 }
 
-                const blazon = $(elem).find('td').first().next()
-                blazon.find('b').first().remove()
-                blazon.find('.floatleft').remove()
-                blazon.find('.floatright').remove()
-                blazon.find('img').remove()
-                blazon.find('.bandeau-niveau-detail').remove()
-
-                const newDescription = (blazon.html() || '').trim()
+                const { html: newDescription, text: newDescriptionText } = FamilyArmorial.extractDescriptions($, $(elem).find('td').next())
                 if (emblem.description !== newDescription) {
                     emblem.description = newDescription
                     updated = true
                 }
 
-                const newDescriptionText = blazon.text().trim()
                 if (emblem.descriptionText !== newDescriptionText) {
                     emblem.descriptionText = newDescriptionText
                     updated = true
