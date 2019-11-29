@@ -38,6 +38,9 @@ async function main(): Promise<void> {
         searchableAttributes: [
             'name',
             'descriptionText'
+        ],
+        customRanking: [
+            'asc(name)'
         ]
     });
 
