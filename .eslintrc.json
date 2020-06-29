@@ -9,6 +9,7 @@
     ],
     "rules": {
         "no-trailing-spaces": "error",
+        "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/explicit-member-accessibility": "off"
     },
     "plugins": [

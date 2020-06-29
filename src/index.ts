@@ -57,7 +57,7 @@ async function main(): Promise<void> {
         indexedAt: new Date(0)
     })
     if (toBeAdded.length > 0) {
-        await index.addObjects(toBeAdded.map((emblem): {} => {
+        await index.saveObjects(toBeAdded.map((emblem): Record<string, unknown> => {
             return {
                 objectID: emblem.id,
                 name: emblem.name,
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
                 imageUrl: emblem.imageUrl,
                 _tags: [emblem.armorial]
             }
-        }))
+        }), { autoGenerateObjectIDIfNotExist: true })
         await emblemRepo.update(toBeAdded.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
         console.log(`${toBeAdded.length} emblems added`)
     }
@@ -76,7 +76,7 @@ async function main(): Promise<void> {
         updatedAt: Raw((alias): string => `${alias} > indexedAt`)
     })
     if (toBeUpdated.length > 0) {
-        await index.saveObjects(toBeUpdated.map((emblem): {} => {
+        await index.saveObjects(toBeUpdated.map((emblem): Record<string, unknown> => {
             return {
                 objectID: emblem.id,
                 name: emblem.name,

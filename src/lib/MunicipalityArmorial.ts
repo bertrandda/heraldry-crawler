@@ -23,9 +23,8 @@ export class MunicipalityArmorial {
             await Promise.all(urls.map(async (url, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
-                let $1: CheerioStatic
                 const page = await axios.get('https://fr.wikipedia.org/' + url)
-                $1 = cheerio.load(page.data)
+                const $1: CheerioStatic = cheerio.load(page.data)
 
                 $1('sup').remove()
 
@@ -52,7 +51,7 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
-                    const blazon = $1(elem).find('tbody td span')
+                    const blazon = $1(elem).find('tbody td div')
                     const newDescription = (blazon.html() || '').trim()
                     if (emblem.description !== newDescription) {
                         emblem.description = newDescription
