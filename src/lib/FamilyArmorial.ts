@@ -48,18 +48,20 @@ export class FamilyArmorial {
 
             $('sup').remove()
 
-            $('.wikitable tbody tr').each(async (i: number, elem: CheerioElement): Promise<boolean> => {
-                if (process.env.NODE_ENV !== 'prod' && i > 30) return false
+            const promises = $('.wikitable tbody tr').get().map(async (elem: CheerioElement, i: number) => {
+                if (process.env.NODE_ENV !== 'prod' && i > 10) return false
                 if ($(elem).find('th').first().text() === 'Figure') return false
 
                 const emblemName = FamilyArmorial.extractName($, $(elem).find('td').next())
                 let emblem
                 let updated = false
+                const slug = Utils.slugify(`${emblemName}`)
 
                 try {
-                    emblem = await repository.findOneOrFail({ name: emblemName, armorial: this.armorialName })
+                    emblem = await repository.findOneOrFail({ slug, armorial: this.armorialName })
                 } catch (e) {
                     emblem = new Emblem()
+                    emblem.slug = slug
                     emblem.name = emblemName
                     emblem.armorial = this.armorialName
                     updated = true
@@ -85,12 +87,11 @@ export class FamilyArmorial {
 
                 emblem.updatedAt = updated ? new Date() : emblem.updatedAt
                 emblem.check = true
-                await repository.save(emblem)
 
-                return true
+                return repository.save(emblem)
             })
 
-            return
+            await Promise.all(promises)
         }))
 
         return true

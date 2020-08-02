@@ -15,31 +15,33 @@ export class MunicipalityArmorial {
             const response = await axios.get(url)
             $ = cheerio.load(response.data)
 
-            const urls: string[] = []
+            const deptPages: Record<string, unknown>[] = []
             $('.wikitable').first().find('li a').each(async (i, elem): Promise<void> => {
-                urls.push(elem.attribs.href)
+                deptPages.push({ dept: $(elem).text(), url: elem.attribs.href })
             })
 
-            await Promise.all(urls.map(async (url, i): Promise<void> => {
+            await Promise.all(deptPages.map(async ({ dept, url }, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
-                let $1: CheerioStatic
                 const page = await axios.get('https://fr.wikipedia.org/' + url)
-                $1 = cheerio.load(page.data)
+                const $1: CheerioStatic = cheerio.load(page.data)
 
                 $1('sup').remove()
 
-                $1('.wikitable').each(async (i, elem): Promise<boolean> => {
+                const promises = $1('.wikitable').get().map(async (elem: CheerioElement, i: number) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
+                    if ($1(elem).prop('class') !== 'wikitable') return false
 
                     const emblemName = $1(elem).find('caption a').text().trim()
                     let emblem
                     let updated = false
+                    const slug = Utils.slugify(`${dept} ${emblemName}`)
 
                     try {
-                        emblem = await repository.findOneOrFail({ name: emblemName, armorial: this.armorialName })
+                        emblem = await repository.findOneOrFail({ slug, armorial: this.armorialName })
                     } catch (e) {
                         emblem = new Emblem()
+                        emblem.slug = slug
                         emblem.name = emblemName
                         emblem.armorial = this.armorialName
                         updated = true
@@ -52,7 +54,7 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
-                    const blazon = $1(elem).find('tbody td span')
+                    const blazon = $1(elem).find('tbody td div')
                     const newDescription = (blazon.html() || '').trim()
                     if (emblem.description !== newDescription) {
                         emblem.description = newDescription
@@ -67,10 +69,11 @@ export class MunicipalityArmorial {
 
                     emblem.updatedAt = updated ? new Date() : emblem.updatedAt
                     emblem.check = true
-                    await repository.save(emblem)
 
-                    return true
+                    return repository.save(emblem)
                 })
+
+                await Promise.all(promises)
             }))
         }))
 
