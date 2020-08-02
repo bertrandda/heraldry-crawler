@@ -12,4 +12,13 @@ export default class Utils {
         thumbUrl = thumbUrl.replace(/g\/\d*px/g, 'g/80px');
         return thumbUrl;
     }
+
+    static slugify(input: string): string {
+      return input.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    }
 }

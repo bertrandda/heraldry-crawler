@@ -7,6 +7,9 @@ export class Emblem {
     id!: number
 
     @Column()
+    slug: string = ''
+
+    @Column()
     name: string = ''
 
     @Column('text')

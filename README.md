@@ -1,5 +1,5 @@
 # heraldry-crawler
-Front French armorial, linked with [heraldry-search-front](https://github.com/bertrandda/heraldry-search-front) project.
+Script to fill French armorial database, linked with [heraldry-search-front](https://github.com/bertrandda/heraldry-search-front) project.
 
 ## Features
 - Scrap data from Wikipedia armorials
