@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "typeorm": "ts-node ./node_modules/.bin/typeorm",
-    "start": "ts-node src/index.ts",
-    "lint": "eslint ./src",
+    "crawl": "ts-node scripts/crawl.ts",
+    "lint": "eslint ./scripts ./src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Bertrand d'Aure",
