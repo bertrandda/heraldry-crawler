@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "typeorm": "ts-node ./node_modules/.bin/typeorm",
+    "init-elastic": "ts-node scripts/initElasticsearch.ts",
     "crawl": "ts-node scripts/crawl.ts",
     "lint": "eslint ./scripts ./src",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,6 +13,7 @@
   "author": "Bertrand d'Aure",
   "license": "MIT",
   "dependencies": {
+    "@elastic/elasticsearch": "^7.11.0",
     "algoliasearch": "^4.2.0",
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
