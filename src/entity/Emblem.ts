@@ -42,6 +42,11 @@ export class Emblem {
             },
             name: {
                 type: 'text',
+                fields: {
+                    raw: {
+                        type: "keyword",
+                    },
+                },
             },
             description_text: {
                 type: 'text',
