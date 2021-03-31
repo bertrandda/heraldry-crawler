@@ -1,4 +1,5 @@
 import cheerio from 'cheerio'
+import { Promise } from 'bluebird'
 import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
 import { Repository } from 'typeorm';
@@ -20,10 +21,10 @@ export class MunicipalityArmorial {
                 deptPages.push({ dept: $(elem).text(), url: elem.attribs.href })
             })
 
-            await Promise.all(deptPages.map(async ({ dept, url }, i): Promise<void> => {
+            await Promise.map(deptPages, async ({ dept, url }, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
-                const page = await axios.get('https://fr.wikipedia.org/' + url)
+                const page = await axios.get('https://fr.wikipedia.org' + url)
                 const $1: CheerioStatic = cheerio.load(page.data)
 
                 $1('sup').remove()
@@ -74,7 +75,7 @@ export class MunicipalityArmorial {
                 })
 
                 await Promise.all(promises)
-            }))
+            }, { concurrency: 15 })
         }))
 
         return true

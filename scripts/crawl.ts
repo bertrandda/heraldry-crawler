@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+import { Promise } from 'bluebird'
 import chunk from 'lodash.chunk'
 import { createConnection, Raw } from 'typeorm'
 import algoliasearch, { SearchIndex } from 'algoliasearch'
@@ -26,17 +27,27 @@ async function main(): Promise<void> {
         return
     }
 
+    console.log(`Data will be indexed to:`)
+    ALGOLIA_INDEXING && console.log('- Algolia')
+    ELASTIC_INDEXING && console.log('- Elasticsearch')
+
     const connection = await createConnection()
 
-    const emblemRepo = connection.getRepository(Emblem);
+    const emblemRepo = connection.getRepository(Emblem)
 
     await emblemRepo.createQueryBuilder()
         .update()
         .set({ check: false })
         .execute()
 
+    console.log('Start family armorial crawling')
     await FamilyArmorial.crawlPage(emblemRepo)
+    console.log('Start municipality armorial crawling')
     await MunicipalityArmorial.crawlPage(emblemRepo)
+
+    if (ALGOLIA_INDEXING || ELASTIC_INDEXING) {
+        console.log('Start indexing')
+    }
 
     let algoliaIndex: SearchIndex
     if (ALGOLIA_INDEXING) {
@@ -51,7 +62,7 @@ async function main(): Promise<void> {
             customRanking: [
                 'asc(name)'
             ]
-        });
+        })
     }
 
     let elasticClient: Client
@@ -77,9 +88,9 @@ async function main(): Promise<void> {
                 }
             })
         }
-        await Promise.all(chunk(toBeDeleted, 500).map(toBeDeletedChunk => {
-            return emblemRepo.delete(toBeDeletedChunk.map((emblem: Emblem): number => emblem.id))
-        }))
+        await Promise.all(chunk(toBeDeleted, 500).map(toBeDeletedChunk =>
+            emblemRepo.delete(toBeDeletedChunk.map((emblem: Emblem): number => emblem.id))
+        ))
     }
     console.log(`${toBeDeleted.length} emblems deleted`)
 
@@ -89,34 +100,37 @@ async function main(): Promise<void> {
     })
     if (toBeAdded.length > 0) {
         if (ALGOLIA_INDEXING) {
-            await algoliaIndex.saveObjects(toBeAdded.map((emblem): Record<string, string | string[] | number> => {
-                return {
-                    objectID: emblem.id,
-                    name: emblem.name,
-                    description: emblem.description,
-                    descriptionText: emblem.descriptionText,
-                    imageUrl: emblem.imageUrl,
-                    _tags: [emblem.armorial]
-                }
-            }), { autoGenerateObjectIDIfNotExist: true })
+            await algoliaIndex.saveObjects(toBeAdded.map((emblem): Record<string, string | string[] | number> => ({
+                objectID: emblem.id,
+                name: emblem.name,
+                description: emblem.description,
+                descriptionText: emblem.descriptionText,
+                imageUrl: emblem.imageUrl,
+                _tags: [emblem.armorial]
+            })), { autoGenerateObjectIDIfNotExist: true })
         }
         if (ELASTIC_INDEXING) {
-            await elasticClient.bulk({
-                body: toBeAdded.map((emblem): Record<string, string | string[] | number> => {
-                    return {
-                        emblem_id: emblem.id,
-                        name: emblem.name,
-                        description: emblem.description,
-                        description_text: emblem.descriptionText,
-                        image_url: emblem.imageUrl,
-                        tags: [emblem.armorial]
-                    }
-                }).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
-            })
+            try {
+                await Promise.map(chunk(toBeAdded, 5000), async toBeAddedChunk => {
+                    await elasticClient.bulk({
+                        body: toBeAddedChunk.map((emblem): Record<string, string | string[] | number> => ({
+                            emblem_id: emblem.id,
+                            name: emblem.name,
+                            description: emblem.description,
+                            description_text: emblem.descriptionText,
+                            image_url: emblem.imageUrl,
+                            tags: [emblem.armorial]
+                        })).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
+                    })
+                }, { concurrency: 1 })
+            } catch (error) {
+                console.log('Elasticsearch indexing failed')
+                console.log(error.body);
+            }
         }
-        await Promise.all(chunk(toBeAdded, 500).map(toBeAddedChunk => {
-            return emblemRepo.update(toBeAddedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
-        }))
+        await Promise.all(chunk(toBeAdded, 500).map(toBeAddedChunk =>
+            emblemRepo.update(toBeAddedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
+        ))
     }
     console.log(`${toBeAdded.length} emblems added`)
 
@@ -126,39 +140,42 @@ async function main(): Promise<void> {
     })
     if (toBeUpdated.length > 0) {
         if (ALGOLIA_INDEXING) {
-            await algoliaIndex.saveObjects(toBeUpdated.map((emblem): Record<string, string | string[] | number> => {
-                return {
-                    objectID: emblem.id,
-                    name: emblem.name,
-                    description: emblem.description,
-                    descriptionText: emblem.descriptionText,
-                    imageUrl: emblem.imageUrl,
-                    _tags: [emblem.armorial]
-                }
-            }))
+            await algoliaIndex.saveObjects(toBeUpdated.map((emblem): Record<string, string | string[] | number> => ({
+                objectID: emblem.id,
+                name: emblem.name,
+                description: emblem.description,
+                descriptionText: emblem.descriptionText,
+                imageUrl: emblem.imageUrl,
+                _tags: [emblem.armorial]
+            })))
         }
         if (ELASTIC_INDEXING) {
-            await elasticClient.bulk({
-                body: toBeAdded.map((emblem): Record<string, string | string[] | number> => {
-                    return {
-                        _id: emblem.id.toString(),
-                        emblem_id: emblem.id,
-                        name: emblem.name,
-                        description: emblem.description,
-                        description_text: emblem.descriptionText,
-                        image_url: emblem.imageUrl,
-                        tags: [emblem.armorial]
-                    }
-                }).flatMap(elasticEmblem => [{
-                    index: {
-                        _index: Emblem.index, _id: elasticEmblem.emblem_id.toString()
-                    }
-                }, elasticEmblem])
-            })
+            try {
+                await Promise.map(chunk(toBeUpdated, 5000), async toBeUpdatedChunk => {
+                    await elasticClient.bulk({
+                        body: toBeUpdatedChunk.map((emblem): Record<string, string | string[] | number> => ({
+                            _id: emblem.id.toString(),
+                            emblem_id: emblem.id,
+                            name: emblem.name,
+                            description: emblem.description,
+                            description_text: emblem.descriptionText,
+                            image_url: emblem.imageUrl,
+                            tags: [emblem.armorial]
+                        })).flatMap(elasticEmblem => [{
+                            index: {
+                                _index: Emblem.index, _id: elasticEmblem.emblem_id.toString()
+                            }
+                        }, elasticEmblem])
+                    })
+                }, { concurrency: 1 })
+            } catch (error) {
+                console.log('Elasticsearch update indexing failed')
+                console.log(error.body);
+            }
         }
-        await Promise.all(chunk(toBeUpdated, 500).map(toBeUpdatedChunk => {
-            return emblemRepo.update(toBeUpdatedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
-        }))
+        await Promise.all(chunk(toBeUpdated, 500).map(toBeUpdatedChunk =>
+            emblemRepo.update(toBeUpdatedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
+        ))
     }
     console.log(`${toBeUpdated.length} emblems updated`)
 }
