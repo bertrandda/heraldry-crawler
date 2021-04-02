@@ -53,6 +53,8 @@ export class FamilyArmorial {
                 if ($(elem).find('th').first().text() === 'Figure') return false
 
                 const emblemName = FamilyArmorial.extractName($, $(elem).find('td').next())
+                if (!emblemName) return false
+
                 let emblem
                 let updated = false
                 const slug = Utils.slugify(`${emblemName}`)

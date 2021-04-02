@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "typeorm": "ts-node ./node_modules/.bin/typeorm",
+    "init-dbs": "rm data/db.sqlite && yarn init-elastic",
     "init-elastic": "ts-node scripts/initElasticsearch.ts",
     "crawl": "ts-node scripts/crawl.ts",
     "start": "nodemon src/server.ts",

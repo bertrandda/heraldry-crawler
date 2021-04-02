@@ -33,7 +33,9 @@ export class MunicipalityArmorial {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
                     if ($1(elem).prop('class') !== 'wikitable') return false
 
-                    const emblemName = $1(elem).find('caption a').text().trim()
+                    const emblemName = $1(elem).prop('id') ? $1(elem).prop('id').replace(/_/g, ' ') : undefined
+                    if (!emblemName) return false
+
                     let emblem
                     let updated = false
                     const slug = Utils.slugify(`${dept} ${emblemName}`)
@@ -55,14 +57,15 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
-                    const blazon = $1(elem).find('tbody td div')
-                    const newDescription = (blazon.html() || '').trim()
+                    const blazon = cheerio.load($1(elem).find('tbody tr td')[1]).root()
+
+                    const newDescription = blazon.html()
                     if (emblem.description !== newDescription) {
                         emblem.description = newDescription
                         updated = true
                     }
 
-                    const newDescriptionText = blazon.text().trim()
+                    const newDescriptionText = blazon.text()
                     if (emblem.descriptionText !== newDescriptionText) {
                         emblem.descriptionText = newDescriptionText
                         updated = true
