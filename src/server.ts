@@ -8,7 +8,7 @@ import Utils from './lib/Utils'
 dotenv.config()
 
 const app = express()
-app.use(cors({ origin: process.env.ORIGIN_URL }))
+app.use(cors({ ...(process.env.ORIGIN_URL && { origin: process.env.ORIGIN_URL }) }))
 app.use(express.json())
 
 const PORT = 3001

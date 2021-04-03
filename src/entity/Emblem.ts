@@ -22,6 +22,9 @@ export class Emblem {
     imageUrl: string = ''
 
     @Column()
+    sourceUrl: string = ''
+
+    @Column()
     armorial: string = ''
 
     @Column()
@@ -55,6 +58,9 @@ export class Emblem {
                 type: 'keyword',
             },
             image_url: {
+                type: 'keyword',
+            },
+            source_url: {
                 type: 'keyword',
             },
             tags: {

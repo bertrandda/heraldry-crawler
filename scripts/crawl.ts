@@ -106,6 +106,7 @@ async function main(): Promise<void> {
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
+                sourceUrl: emblem.sourceUrl,
                 _tags: [emblem.armorial]
             })), { autoGenerateObjectIDIfNotExist: true })
         }
@@ -119,6 +120,7 @@ async function main(): Promise<void> {
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
+                            source_url: emblem.sourceUrl,
                             tags: [emblem.armorial]
                         })).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
                     })
@@ -146,6 +148,7 @@ async function main(): Promise<void> {
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
+                sourceUrl: emblem.sourceUrl,
                 _tags: [emblem.armorial]
             })))
         }
@@ -160,6 +163,7 @@ async function main(): Promise<void> {
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
+                            source_url: emblem.sourceUrl,
                             tags: [emblem.armorial]
                         })).flatMap(elasticEmblem => [{
                             index: {

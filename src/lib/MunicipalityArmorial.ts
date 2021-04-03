@@ -57,6 +57,11 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
+                    if (emblem.sourceUrl !== `https://fr.wikipedia.org${url}#${$1(elem).prop('id')}`) {
+                        emblem.sourceUrl = `https://fr.wikipedia.org${url}#${$1(elem).prop('id')}`
+                        updated = true
+                    }
+
                     const blazon = cheerio.load($1(elem).find('tbody tr td')[1]).root()
 
                     const newDescription = blazon.html()

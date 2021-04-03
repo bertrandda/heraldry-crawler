@@ -76,6 +76,11 @@ export class FamilyArmorial {
                     updated = true
                 }
 
+                if (emblem.sourceUrl !== url) {
+                    emblem.sourceUrl = url
+                    updated = true
+                }
+
                 const { html: newDescription, text: newDescriptionText } = FamilyArmorial.extractDescriptions($, $(elem).find('td').next())
                 if (emblem.description !== newDescription) {
                     emblem.description = newDescription
