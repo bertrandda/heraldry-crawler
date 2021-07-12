@@ -9,7 +9,7 @@ export class FamilyArmorial {
 
     private static armorialName = 'family'
 
-    private static extractName = ($: CheerioStatic, body: Cheerio): string => {
+    private static extractName = ($: cheerio.Root, body: cheerio.Cheerio): string => {
         const names = ['p', 'ul', 'dl'].map((selector): string => {
             const elems = $(body).find(selector)
             let i = 0;
@@ -25,7 +25,7 @@ export class FamilyArmorial {
         return names.reduce((a, b): string => a.length < b.length ? a : b).replace(/ +(?= )/g, '');
     }
 
-    private static extractDescriptions = ($: CheerioStatic, body: Cheerio): { html: string; text: string } => {
+    private static extractDescriptions = ($: cheerio.Root, body: cheerio.Cheerio): { html: string; text: string } => {
         const descriptions = ['p', 'ul', 'dl'].map((selector): { html: string; text: string } => {
             const blazon = $(body)
             blazon.find('.bandeau-niveau-detail').remove()
@@ -41,14 +41,14 @@ export class FamilyArmorial {
     }
 
     public static async crawlPage(repository: Repository<Emblem>): Promise<boolean> {
-        let $: CheerioStatic
+        let $: cheerio.Root
         await Promise.all(FamilyArmorial.armorialUrls.map(async (url): Promise<void> => {
             const response = await axios.get(url)
             $ = cheerio.load(response.data, { xmlMode: true })
 
             $('sup').remove()
 
-            const promises = $('.wikitable tbody tr').get().map(async (elem: CheerioElement, i: number) => {
+            const promises = $('.wikitable tbody tr').get().map(async (elem, i) => {
                 if (process.env.NODE_ENV !== 'prod' && i > 10) return false
                 if ($(elem).find('th').first().text() === 'Figure') return false
 

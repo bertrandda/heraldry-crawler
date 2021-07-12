@@ -11,25 +11,25 @@ export class MunicipalityArmorial {
     private static armorialName = 'municipality'
 
     public static async crawlPage(repository: Repository<Emblem>): Promise<boolean> {
-        let $: CheerioStatic
+        let $: cheerio.Root
         await Promise.all(MunicipalityArmorial._armorialUrls.map(async (url): Promise<void> => {
             const response = await axios.get(url)
             $ = cheerio.load(response.data)
 
             const deptPages: Record<string, unknown>[] = []
             $('.wikitable').first().find('li a').each(async (i, elem): Promise<void> => {
-                deptPages.push({ dept: $(elem).text(), url: elem.attribs.href })
+                deptPages.push({ dept: $(elem).text(), url: (<cheerio.TagElement>elem).attribs.href })
             })
 
             await Promise.map(deptPages, async ({ dept, url }, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
                 const page = await axios.get('https://fr.wikipedia.org' + url)
-                const $1: CheerioStatic = cheerio.load(page.data)
+                const $1: cheerio.Root = cheerio.load(page.data)
 
                 $1('sup').remove()
 
-                const promises = $1('.wikitable').get().map(async (elem: CheerioElement, i: number) => {
+                const promises = $1('.wikitable').get().map(async (elem, i) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
                     if ($1(elem).prop('class') !== 'wikitable') return false
 

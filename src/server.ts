@@ -4,6 +4,7 @@ import cors from 'cors'
 import { Client } from '@elastic/elasticsearch'
 import { Emblem } from './entity/Emblem'
 import Utils from './lib/Utils'
+import { integer } from '@elastic/elasticsearch/api/types'
 
 dotenv.config()
 
@@ -26,8 +27,8 @@ app.post('/search', async ({ body: { requests } }, res) => {
                         match_all: {}
                     }),
                     ...(requests[0].params.query && {
-                        multi_match: {
-                            query: requests[0].params.query,
+                        query_string: {
+                            query: requests[0].params.query.trim().split(' ').map((word: string, i: integer) => i > 0 ? ` AND *${word}*` : `*${word}*`).join(''),
                             fields: ['name', 'description_text'],
                         }
                     })
