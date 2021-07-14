@@ -4,7 +4,7 @@
         "emitDecoratorMetadata": true,
         "module": "commonjs",
         "esModuleInterop": true,
-        "target": "es6",
+        "target": "es2020",
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
@@ -12,12 +12,13 @@
         "strictNullChecks": false
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "scripts/*"
     ],
     "exclude": [
         "node_modules"
     ],
     "lib": [
-        "es2015"
+        "es2020"
     ]
 }

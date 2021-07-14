@@ -1,4 +1,5 @@
 import cheerio from 'cheerio'
+import { Promise } from 'bluebird'
 import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
 import { Repository } from 'typeorm';
@@ -10,29 +11,31 @@ export class MunicipalityArmorial {
     private static armorialName = 'municipality'
 
     public static async crawlPage(repository: Repository<Emblem>): Promise<boolean> {
-        let $: CheerioStatic
+        let $: cheerio.Root
         await Promise.all(MunicipalityArmorial._armorialUrls.map(async (url): Promise<void> => {
             const response = await axios.get(url)
             $ = cheerio.load(response.data)
 
             const deptPages: Record<string, unknown>[] = []
             $('.wikitable').first().find('li a').each(async (i, elem): Promise<void> => {
-                deptPages.push({ dept: $(elem).text(), url: elem.attribs.href })
+                deptPages.push({ dept: $(elem).text(), url: (<cheerio.TagElement>elem).attribs.href })
             })
 
-            await Promise.all(deptPages.map(async ({ dept, url }, i): Promise<void> => {
+            await Promise.map(deptPages, async ({ dept, url }, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
-                const page = await axios.get('https://fr.wikipedia.org/' + url)
-                const $1: CheerioStatic = cheerio.load(page.data)
+                const page = await axios.get('https://fr.wikipedia.org' + url)
+                const $1: cheerio.Root = cheerio.load(page.data)
 
                 $1('sup').remove()
 
-                const promises = $1('.wikitable').get().map(async (elem: CheerioElement, i: number) => {
+                const promises = $1('.wikitable').get().map(async (elem, i) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
                     if ($1(elem).prop('class') !== 'wikitable') return false
 
-                    const emblemName = $1(elem).find('caption a').text().trim()
+                    const emblemName = $1(elem).prop('id') ? $1(elem).prop('id').replace(/_/g, ' ') : undefined
+                    if (!emblemName) return false
+
                     let emblem
                     let updated = false
                     const slug = Utils.slugify(`${dept} ${emblemName}`)
@@ -54,14 +57,20 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
-                    const blazon = $1(elem).find('tbody td div')
-                    const newDescription = (blazon.html() || '').trim()
+                    if (emblem.sourceUrl !== `https://fr.wikipedia.org${url}#${$1(elem).prop('id')}`) {
+                        emblem.sourceUrl = `https://fr.wikipedia.org${url}#${$1(elem).prop('id')}`
+                        updated = true
+                    }
+
+                    const blazon = cheerio.load($1(elem).find('tbody tr td')[1]).root()
+
+                    const newDescription = blazon.html()
                     if (emblem.description !== newDescription) {
                         emblem.description = newDescription
                         updated = true
                     }
 
-                    const newDescriptionText = blazon.text().trim()
+                    const newDescriptionText = blazon.text()
                     if (emblem.descriptionText !== newDescriptionText) {
                         emblem.descriptionText = newDescriptionText
                         updated = true
@@ -74,7 +83,7 @@ export class MunicipalityArmorial {
                 })
 
                 await Promise.all(promises)
-            }))
+            }, { concurrency: 15 })
         }))
 
         return true

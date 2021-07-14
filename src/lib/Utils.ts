@@ -14,11 +14,20 @@ export default class Utils {
     }
 
     static slugify(input: string): string {
-      return input.toString().toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
+        return input.toString().toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .replace(/^-+/, '')
+            .replace(/-+$/, '')
+    }
+
+    static snakeToCamel(input: string): string {
+        return input.replace(/([-_][a-z])/g, (group) =>
+            group
+                .toUpperCase()
+                .replace('-', '')
+                .replace('_', '')
+        )
     }
 }
