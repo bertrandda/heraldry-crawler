@@ -12,7 +12,7 @@ const app = express()
 app.use(cors({ ...(process.env.ORIGIN_URL && { origin: process.env.ORIGIN_URL }) }))
 app.use(express.json())
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 const client = new Client({ node: process.env.ELASTIC_URL })
 
