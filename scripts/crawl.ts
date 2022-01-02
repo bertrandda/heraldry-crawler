@@ -107,7 +107,8 @@ async function main(): Promise<void> {
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
                 sourceUrl: emblem.sourceUrl,
-                _tags: [emblem.armorial]
+                _tags: [emblem.armorial],
+                credits: emblem.credits,
             })), { autoGenerateObjectIDIfNotExist: true })
         }
         if (ELASTIC_INDEXING) {
@@ -121,7 +122,8 @@ async function main(): Promise<void> {
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
                             source_url: emblem.sourceUrl,
-                            tags: [emblem.armorial]
+                            tags: [emblem.armorial],
+                            credits: emblem.credits,
                         })).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
                     })
                 }, { concurrency: 1 })
@@ -149,7 +151,8 @@ async function main(): Promise<void> {
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
                 sourceUrl: emblem.sourceUrl,
-                _tags: [emblem.armorial]
+                _tags: [emblem.armorial],
+                credits: emblem.credits,
             })))
         }
         if (ELASTIC_INDEXING) {
@@ -164,7 +167,8 @@ async function main(): Promise<void> {
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
                             source_url: emblem.sourceUrl,
-                            tags: [emblem.armorial]
+                            tags: [emblem.armorial],
+                            credits: emblem.credits,
                         })).flatMap(elasticEmblem => [{
                             index: {
                                 _index: Emblem.index, _id: elasticEmblem.emblem_id.toString()

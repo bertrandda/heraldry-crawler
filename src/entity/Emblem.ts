@@ -28,6 +28,9 @@ export class Emblem {
     armorial: string = ''
 
     @Column()
+    credits: string = ''
+
+    @Column()
     check: boolean = true
 
     @Column()
@@ -64,6 +67,9 @@ export class Emblem {
                 type: 'keyword',
             },
             tags: {
+                type: 'keyword',
+            },
+            credits: {
                 type: 'keyword',
             },
         },
