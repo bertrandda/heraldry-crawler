@@ -4,7 +4,6 @@ import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
 import { Repository } from 'typeorm';
 import Utils from './Utils';
-import WikiUtils from './WikiUtils';
 
 export class MunicipalityArmorial {
     private static _armorialUrls = ['https://fr.wikipedia.org/wiki/Armorial_des_communes_de_France']
@@ -53,11 +52,7 @@ export class MunicipalityArmorial {
 
                     let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.image img').attr('src'))
                     if (newImageUrl) {
-                        const newcredits = await WikiUtils.getImageCredits(decodeURI(newImageUrl.split('/').pop()))
-                        if (emblem.credits !== newcredits) {
-                            emblem.credits = newcredits
-                            updated = true
-                        }
+                        emblem.credits = null
                     }
                     newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                     if (emblem.imageUrl !== newImageUrl) {
