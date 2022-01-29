@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export default class WikiUtils {
     static async getImageCredits(imageTitle: string): Promise<string> {
-        const { data: {query: response} } = await axios({
+        const { data: { query: response } } = await axios({
             method: 'GET',
             baseURL: 'https://fr.wikipedia.org/w/api.php',
             params: {
@@ -13,9 +13,17 @@ export default class WikiUtils {
                 format: 'json'
             }
         })
-        const metadata = response.pages['-1'].imageinfo[0].extmetadata
+
+        const metadata = Object.values<any>(response.pages)[0].imageinfo?.[0].extmetadata
+        if (!metadata) {
+            return null
+        }
+
         const artist = metadata.Artist?.value || ''
-        const license = metadata.LicenseShortName?.value ? `${metadata.LicenseUrl?.value ? `<a href=\"${metadata.LicenseUrl?.value}\" >`: ''}${metadata.LicenseShortName?.value}${metadata.LicenseUrl?.value ? `</a>`: ''}` : ''
+        const license = metadata.LicenseShortName?.value ? `${metadata.LicenseUrl?.value ? `<a href=\"${metadata.LicenseUrl?.value}\" >` : ''}${metadata.LicenseShortName?.value}${metadata.LicenseUrl?.value ? `</a>` : ''}` : ''
+        if (!artist && !license) {
+            return null
+        }
 
         return `${artist}${(artist && license) ? ` / ` : ''}${license}`
     }

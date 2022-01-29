@@ -160,7 +160,6 @@ async function main(): Promise<void> {
                 await Promise.map(chunk(toBeUpdated, 5000), async toBeUpdatedChunk => {
                     await elasticClient.bulk({
                         body: toBeUpdatedChunk.map((emblem): Record<string, string | string[] | number> => ({
-                            _id: emblem.id.toString(),
                             emblem_id: emblem.id,
                             name: emblem.name,
                             description: emblem.description,
