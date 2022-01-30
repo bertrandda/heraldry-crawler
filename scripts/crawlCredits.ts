@@ -83,9 +83,9 @@ async function crawlCredits() {
                         }, elasticEmblem]),
                     })
                 }, { concurrency: 1 })
-            } catch (error) {
+            } catch (e) {
                 console.log('Elasticsearch update indexing failed')
-                console.log(error.body);
+                console.log(e);
             }
         }
         await Promise.all(chunk(emblemCredited, 500).map(emblemCreditedChunk =>

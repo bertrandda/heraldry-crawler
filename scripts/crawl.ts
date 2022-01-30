@@ -127,9 +127,9 @@ async function main(): Promise<void> {
                         })).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
                     })
                 }, { concurrency: 1 })
-            } catch (error) {
+            } catch (e) {
                 console.log('Elasticsearch indexing failed')
-                console.log(error.body);
+                console.log(e);
             }
         }
         await Promise.all(chunk(toBeAdded, 500).map(toBeAddedChunk =>
@@ -175,9 +175,9 @@ async function main(): Promise<void> {
                         }, elasticEmblem])
                     })
                 }, { concurrency: 1 })
-            } catch (error) {
+            } catch (e) {
                 console.log('Elasticsearch update indexing failed')
-                console.log(error.body);
+                console.log(e);
             }
         }
         await Promise.all(chunk(toBeUpdated, 500).map(toBeUpdatedChunk =>
