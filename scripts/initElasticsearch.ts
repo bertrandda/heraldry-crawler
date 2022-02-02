@@ -29,9 +29,9 @@ async function initElastic(): Promise<void> {
             index,
             body: Emblem.elasticSearchMapping,
         })
-    } catch (error) {
+    } catch (e) {
         console.log('An error occured while create mapping')
-        console.log(error.body)
+        console.log(e)
     }
 }
 

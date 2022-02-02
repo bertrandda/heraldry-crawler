@@ -4,7 +4,7 @@ export default class WikiUtils {
     static async getImageCredits(imageTitle: string): Promise<string> {
         const { data: { query: response } } = await axios({
             method: 'GET',
-            baseURL: 'https://fr.wikipedia.org/w/api.php',
+            url: 'https://fr.wikipedia.org/w/api.php',
             params: {
                 action: 'query',
                 prop: 'imageinfo',

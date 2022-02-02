@@ -61,9 +61,9 @@ app.post('/search', async ({ body: { requests } }, res) => {
                 query: requests[0].params.query,
             }]
         })
-    } catch (error) {
-        console.log(error.body)
+    } catch (e) {
         res.send('Error while search')
+        console.log(e)
     }
 })
 
