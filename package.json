@@ -6,7 +6,7 @@
   "scripts": {
     "typeorm": "ts-node ./node_modules/.bin/typeorm",
     "init-dbs": "rm -f data/db.sqlite && yarn init-elastic",
-    "init-elastic": "ts-node scripts/initElasticsearch.ts",
+    "init-elastic": "ts-node scripts/initIndices.ts",
     "crawl": "ts-node scripts/crawl.ts",
     "crawl-credits": "ts-node scripts/crawlCredits.ts",
     "start": "nodemon src/server.ts",

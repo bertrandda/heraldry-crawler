@@ -53,16 +53,6 @@ async function main(): Promise<void> {
     if (ALGOLIA_INDEXING) {
         const client = algoliasearch(process.env.ALGOLIA_APPLICATION_ID, process.env.ALGOLIA_API_KEY)
         algoliaIndex = client.initIndex(process.env.ALGOLIA_INDEX || 'emblems')
-
-        algoliaIndex.setSettings({
-            searchableAttributes: [
-                'name',
-                'descriptionText'
-            ],
-            customRanking: [
-                'asc(name)'
-            ]
-        })
     }
 
     let elasticClient: Client

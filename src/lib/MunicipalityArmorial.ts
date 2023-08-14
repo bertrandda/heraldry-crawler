@@ -49,8 +49,7 @@ export class MunicipalityArmorial {
                         emblem.armorial = this.armorialName
                         updated = true
                     }
-
-                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.image img').attr('src'))
+                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description img').attr('src'))
                     if (newImageUrl) {
                         emblem.credits = null
                     }

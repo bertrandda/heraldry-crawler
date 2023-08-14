@@ -69,7 +69,7 @@ export class FamilyArmorial {
                     updated = true
                 }
 
-                let newImageUrl = Utils.optimizeImageUrl($(elem).find('.image img').attr('src'))
+                let newImageUrl = Utils.optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
                 if (newImageUrl) {
                     emblem.credits = null
                 }
