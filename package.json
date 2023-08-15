@@ -27,7 +27,7 @@
     "express": "^4.18.2",
     "lodash.chunk": "^4.2.0",
     "sqlite3": "^5.1.6",
-    "typeorm": "^0.2.41"
+    "typeorm": "^0.3.17"
   },
   "devDependencies": {
     "@types/algoliasearch": "^4.0.0",

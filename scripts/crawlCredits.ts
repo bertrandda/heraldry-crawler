@@ -1,10 +1,11 @@
 import dotenv from 'dotenv'
 import { Promise } from 'bluebird'
 import chunk from 'lodash.chunk'
-import {SingleBar, Presets} from 'cli-progress'
-import { createConnection, IsNull } from 'typeorm'
+import { SingleBar, Presets } from 'cli-progress'
+import { IsNull } from 'typeorm'
 import algoliasearch from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
+import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
 import WikiUtils from '../src/lib/WikiUtils'
 
@@ -31,11 +32,11 @@ async function crawlCredits() {
     ALGOLIA_INDEXING && console.log('- Algolia')
     ELASTIC_INDEXING && console.log('- Elasticsearch')
 
-    const connection = await createConnection()
+    const connection = await dataSource.initialize()
 
     const emblemRepo = connection.getRepository(Emblem)
 
-    const emblemToCredits = await emblemRepo.find({ credits: IsNull() })
+    const emblemToCredits = await emblemRepo.findBy({ credits: IsNull() })
 
     if (emblemToCredits.length > 0) {
         const bar = new SingleBar({}, Presets.legacy)
