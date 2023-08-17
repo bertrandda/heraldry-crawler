@@ -59,7 +59,8 @@ async function crawlCredits() {
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
                 sourceUrl: emblem.sourceUrl,
-                _tags: [emblem.armorial],
+                path: emblem.path,
+                _tags: [emblem.armorial, emblem.country],
                 credits: emblem.credits,
             })))
         }
@@ -75,7 +76,8 @@ async function crawlCredits() {
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
                             source_url: emblem.sourceUrl,
-                            tags: [emblem.armorial],
+                            path: emblem.path,
+                            tags: [emblem.armorial, emblem.country],
                             credits: emblem.credits,
                         })).flatMap(elasticEmblem => [{
                             index: {

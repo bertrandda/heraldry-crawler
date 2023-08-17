@@ -25,7 +25,13 @@ export class Emblem {
     sourceUrl: string = ''
 
     @Column()
+    country: string = ''
+
+    @Column()
     armorial: string = ''
+
+    @Column()
+    path: string = ''
 
     @Column()
     credits: string = ''
@@ -64,6 +70,9 @@ export class Emblem {
                 type: 'keyword',
             },
             source_url: {
+                type: 'keyword',
+            },
+            path: {
                 type: 'keyword',
             },
             tags: {

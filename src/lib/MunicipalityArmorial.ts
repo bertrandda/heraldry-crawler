@@ -16,7 +16,7 @@ export class MunicipalityArmorial {
             const response = await axios.get(url)
             $ = cheerio.load(response.data)
 
-            const deptPages: Record<string, unknown>[] = []
+            const deptPages: Record<string, string>[] = []
             $('.wikitable').first().find('li a').each(async (i, elem): Promise<void> => {
                 deptPages.push({ dept: $(elem).text(), url: (<cheerio.TagElement>elem).attribs.href })
             })
@@ -49,6 +49,10 @@ export class MunicipalityArmorial {
                         emblem.armorial = this.armorialName
                         updated = true
                     }
+
+                    emblem.country = 'france'
+                    emblem.path = `/ville/${emblem.country}/${Utils.slugify(dept.split('–')[1].trim())}/${Utils.slugify(emblemName)}`
+
                     let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description img').attr('src'))
                     newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                     if (emblem.imageUrl !== newImageUrl) {
