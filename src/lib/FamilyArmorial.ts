@@ -60,7 +60,7 @@ export class FamilyArmorial {
                 const slug = Utils.slugify(`${emblemName}`)
 
                 try {
-                    emblem = await repository.findOneOrFail({ slug, armorial: this.armorialName })
+                    emblem = await repository.findOneByOrFail({ slug, armorial: this.armorialName })
                 } catch (e) {
                     emblem = new Emblem()
                     emblem.slug = slug
@@ -69,13 +69,11 @@ export class FamilyArmorial {
                     updated = true
                 }
 
-                let newImageUrl = Utils.optimizeImageUrl($(elem).find('.image img').attr('src'))
-                if (newImageUrl) {
-                    emblem.credits = null
-                }
+                let newImageUrl = Utils.optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
                 newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                 if (emblem.imageUrl !== newImageUrl) {
                     emblem.imageUrl = newImageUrl
+                    emblem.credits = null
                     updated = true
                 }
 

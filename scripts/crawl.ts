@@ -1,11 +1,12 @@
 import dotenv from 'dotenv'
 import { Promise } from 'bluebird'
 import chunk from 'lodash.chunk'
-import { createConnection, Raw } from 'typeorm'
+import { Raw } from 'typeorm'
 import algoliasearch, { SearchIndex } from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
 import { FamilyArmorial } from '../src/lib/FamilyArmorial'
 import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
+import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
 
 async function main(): Promise<void> {
@@ -31,7 +32,7 @@ async function main(): Promise<void> {
     ALGOLIA_INDEXING && console.log('- Algolia')
     ELASTIC_INDEXING && console.log('- Elasticsearch')
 
-    const connection = await createConnection()
+    const connection = await dataSource.initialize()
 
     const emblemRepo = connection.getRepository(Emblem)
 
@@ -53,16 +54,6 @@ async function main(): Promise<void> {
     if (ALGOLIA_INDEXING) {
         const client = algoliasearch(process.env.ALGOLIA_APPLICATION_ID, process.env.ALGOLIA_API_KEY)
         algoliaIndex = client.initIndex(process.env.ALGOLIA_INDEX || 'emblems')
-
-        algoliaIndex.setSettings({
-            searchableAttributes: [
-                'name',
-                'descriptionText'
-            ],
-            customRanking: [
-                'asc(name)'
-            ]
-        })
     }
 
     let elasticClient: Client
@@ -71,7 +62,7 @@ async function main(): Promise<void> {
     }
 
     // Delete emblem from indices when check === false
-    const toBeDeleted = await emblemRepo.find({ check: false })
+    const toBeDeleted = await emblemRepo.findBy({ check: false })
     if (toBeDeleted.length > 0) {
         if (ALGOLIA_INDEXING) {
             await algoliaIndex.deleteObjects(toBeDeleted.map((emblem: Emblem): string => emblem.id.toString()))
@@ -95,8 +86,8 @@ async function main(): Promise<void> {
     console.log(`${toBeDeleted.length} emblems deleted`)
 
     // Add new emblem to indices when indexedAt = 1970...
-    const toBeAdded = await emblemRepo.find({
-        indexedAt: new Date(0).toISOString().replace('T', ' ').replace('Z', '')
+    const toBeAdded = await emblemRepo.findBy({
+        indexedAt: new Date(0)
     })
     if (toBeAdded.length > 0) {
         if (ALGOLIA_INDEXING) {
@@ -139,7 +130,7 @@ async function main(): Promise<void> {
     console.log(`${toBeAdded.length} emblems added`)
 
     // Update indices when updatedAt > indexedAt
-    const toBeUpdated = await emblemRepo.find({
+    const toBeUpdated = await emblemRepo.findBy({
         updatedAt: Raw((alias): string => `${alias} > indexedAt`)
     })
     if (toBeUpdated.length > 0) {
