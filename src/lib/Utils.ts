@@ -16,6 +16,7 @@ export default class Utils {
     static slugify(input: string): string {
         return input.toString().toLowerCase()
             .replace(/\s+/g, '-')
+            .replace(/'+/g, '-')
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .replace(/[^\w\-]+/g, '')
             .replace(/\-\-+/g, '-')

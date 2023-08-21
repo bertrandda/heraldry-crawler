@@ -4,6 +4,7 @@ import chunk from 'lodash.chunk'
 import { Raw } from 'typeorm'
 import algoliasearch, { SearchIndex } from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
+import { uploadFile } from '../src/lib/S3Client'
 import { FamilyArmorial } from '../src/lib/FamilyArmorial'
 import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
 import { dataSource } from '../src/lib/OrmDataSource'
@@ -28,9 +29,16 @@ async function main(): Promise<void> {
         return
     }
 
+    const S3_INDEXING = process.env.S3_INDEXING === 'true'
+    if (S3_INDEXING && !process.env.S3_ACCESS_KEY_ID) {
+        console.log('To index emblem in S3, you need to set S3 variables')
+        return
+    }
+
     console.log(`Data will be indexed to:`)
     ALGOLIA_INDEXING && console.log('- Algolia')
     ELASTIC_INDEXING && console.log('- Elasticsearch')
+    S3_INDEXING && console.log('- S3')
 
     const connection = await dataSource.initialize()
 
@@ -125,6 +133,9 @@ async function main(): Promise<void> {
                 console.log(e);
             }
         }
+        if (S3_INDEXING) {
+            await Promise.all(toBeAdded.map(emblem => uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))))
+        }
         await Promise.all(chunk(toBeAdded, 500).map(toBeAddedChunk =>
             emblemRepo.update(toBeAddedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
         ))
@@ -174,6 +185,9 @@ async function main(): Promise<void> {
                 console.log('Elasticsearch update indexing failed')
                 console.log(e);
             }
+        }
+        if (S3_INDEXING) {
+            await Promise.all(toBeUpdated.map(emblem => uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))))
         }
         await Promise.all(chunk(toBeUpdated, 500).map(toBeUpdatedChunk =>
             emblemRepo.update(toBeUpdatedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
