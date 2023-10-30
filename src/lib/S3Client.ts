@@ -2,7 +2,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export const uploadFile = async (key: string, body: string) => {
     const s3 = new S3Client({
-        region: 'eu-002',
+        region: process.env.S3_REGION,
         endpoint: process.env.S3_ENDPOINT,
         credentials: {
             accessKeyId: process.env.S3_ACCESS_KEY_ID,

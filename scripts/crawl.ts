@@ -4,6 +4,7 @@ import chunk from 'lodash.chunk'
 import { Raw } from 'typeorm'
 import algoliasearch, { SearchIndex } from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
+import { SingleBar, Presets } from 'cli-progress'
 import { uploadFile } from '../src/lib/S3Client'
 import { FamilyArmorial } from '../src/lib/FamilyArmorial'
 import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
@@ -134,8 +135,17 @@ async function main(): Promise<void> {
             }
         }
         if (S3_INDEXING) {
-            await Promise.all(toBeAdded.map(emblem => uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))))
+            console.log('Upload to S3')
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(toBeAdded.length, 0);
+            await Promise.map(toBeAdded, async emblem => {
+                await uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))
+                bar.increment()
+                return
+            }, { concurrency: 5 })
+            bar.stop();
         }
+
         await Promise.all(chunk(toBeAdded, 500).map(toBeAddedChunk =>
             emblemRepo.update(toBeAddedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
         ))
@@ -187,8 +197,17 @@ async function main(): Promise<void> {
             }
         }
         if (S3_INDEXING) {
-            await Promise.all(toBeUpdated.map(emblem => uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))))
+            console.log('Upload to S3')
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(toBeUpdated.length, 0);
+            await Promise.map(toBeUpdated, async emblem => {
+                await uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))
+                bar.increment()
+                return
+            }, { concurrency: 100 })
+            bar.stop();
         }
+
         await Promise.all(chunk(toBeUpdated, 500).map(toBeUpdatedChunk =>
             emblemRepo.update(toBeUpdatedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
         ))
