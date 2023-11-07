@@ -9,6 +9,7 @@
     "init-indices": "ts-node scripts/initIndices.ts",
     "crawl": "ts-node scripts/crawl.ts",
     "crawl-credits": "ts-node scripts/crawlCredits.ts",
+    "generate-sitemap": "ts-node scripts/generateSitemap.ts",
     "start": "nodemon src/server.ts",
     "lint": "eslint ./scripts ./src",
     "test": "echo \"Error: no test specified\" && exit 1"
