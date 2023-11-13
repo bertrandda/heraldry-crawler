@@ -20,5 +20,11 @@ export const uploadFile = async (key: string, body: string) => {
         ContentType: 'application/json',
     });
 
-    await s3.send(command);
+    try {
+        await s3.send(command);
+    } catch (error) {
+        console.log(`Fail to upload file with key ${key}`)
+        console.log(JSON.stringify(body, null, 2))
+        console.log(error)
+    }
 }

@@ -6,10 +6,10 @@ import algoliasearch, { SearchIndex } from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
 import { SingleBar, Presets } from 'cli-progress'
 import { uploadFile } from '../src/lib/S3Client'
-import { FamilyArmorial } from '../src/lib/FamilyArmorial'
 import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
 import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
+import { FamilyArmorialByRegion } from '../src/lib/FamilyArmorialByRegion'
 
 async function main(): Promise<void> {
     dotenv.config()
@@ -51,7 +51,7 @@ async function main(): Promise<void> {
         .execute()
 
     console.log('Start family armorial crawling')
-    await FamilyArmorial.crawlPage(emblemRepo)
+    await FamilyArmorialByRegion.crawlPage(emblemRepo)
     console.log('Start municipality armorial crawling')
     await MunicipalityArmorial.crawlPage(emblemRepo)
 
@@ -103,6 +103,7 @@ async function main(): Promise<void> {
             await algoliaIndex.saveObjects(toBeAdded.map((emblem): Record<string, string | string[] | number> => ({
                 objectID: emblem.id,
                 name: emblem.name,
+                subtitle: emblem.subtitle,
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
@@ -119,6 +120,7 @@ async function main(): Promise<void> {
                         body: toBeAddedChunk.map((emblem): Record<string, string | string[] | number> => ({
                             emblem_id: emblem.id,
                             name: emblem.name,
+                            subtitle: emblem.subtitle,
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
@@ -142,7 +144,7 @@ async function main(): Promise<void> {
                 await uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))
                 bar.increment()
                 return
-            }, { concurrency: 5 })
+            }, { concurrency: 100 })
             bar.stop();
         }
 
@@ -161,6 +163,7 @@ async function main(): Promise<void> {
             await algoliaIndex.saveObjects(toBeUpdated.map((emblem): Record<string, string | string[] | number> => ({
                 objectID: emblem.id,
                 name: emblem.name,
+                subtitle: emblem.subtitle,
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
@@ -177,6 +180,7 @@ async function main(): Promise<void> {
                         body: toBeUpdatedChunk.map((emblem): Record<string, string | string[] | number> => ({
                             emblem_id: emblem.id,
                             name: emblem.name,
+                            subtitle: emblem.subtitle,
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,

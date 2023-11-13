@@ -12,6 +12,9 @@ export class Emblem {
     @Column()
     name: string = ''
 
+    @Column()
+    subtitle: string = ''
+
     @Column('text')
     description: string = ''
 
@@ -30,7 +33,7 @@ export class Emblem {
     @Column()
     armorial: string = ''
 
-    @Column()
+    @Column({ unique: true })
     path: string = ''
 
     @Column()
@@ -53,6 +56,14 @@ export class Emblem {
                 type: 'integer',
             },
             name: {
+                type: 'text',
+                fields: {
+                    raw: {
+                        type: "keyword",
+                    },
+                },
+            },
+            subtitle: {
                 type: 'text',
                 fields: {
                     raw: {

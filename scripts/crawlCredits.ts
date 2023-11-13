@@ -64,6 +64,7 @@ async function crawlCredits() {
             await algoliaIndex.saveObjects(emblemCredited.map((emblem): Record<string, string | string[] | number> => ({
                 objectID: emblem.id,
                 name: emblem.name,
+                subtitle: emblem.subtitle,
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
@@ -81,6 +82,7 @@ async function crawlCredits() {
                         body: creditedChunk.map((emblem): Record<string, string | string[] | number> => ({
                             emblem_id: emblem.id,
                             name: emblem.name,
+                            subtitle: emblem.subtitle,
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
