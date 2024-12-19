@@ -12,6 +12,9 @@ export class Emblem {
     @Column()
     name: string = ''
 
+    @Column()
+    subtitle: string = ''
+
     @Column('text')
     description: string = ''
 
@@ -25,7 +28,13 @@ export class Emblem {
     sourceUrl: string = ''
 
     @Column()
+    country: string = ''
+
+    @Column()
     armorial: string = ''
+
+    @Column({ unique: true })
+    path: string = ''
 
     @Column()
     credits: string = ''
@@ -54,6 +63,14 @@ export class Emblem {
                     },
                 },
             },
+            subtitle: {
+                type: 'text',
+                fields: {
+                    raw: {
+                        type: "keyword",
+                    },
+                },
+            },
             description_text: {
                 type: 'text',
             },
@@ -64,6 +81,9 @@ export class Emblem {
                 type: 'keyword',
             },
             source_url: {
+                type: 'keyword',
+            },
+            path: {
                 type: 'keyword',
             },
             tags: {

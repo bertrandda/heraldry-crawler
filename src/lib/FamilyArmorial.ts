@@ -69,6 +69,9 @@ export class FamilyArmorial {
                     updated = true
                 }
 
+                emblem.country = 'france'
+                emblem.path = `/famille/${emblem.country}/${emblem.slug}`
+
                 let newImageUrl = Utils.optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
                 newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                 if (emblem.imageUrl !== newImageUrl) {

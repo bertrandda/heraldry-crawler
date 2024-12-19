@@ -28,6 +28,7 @@ async function initAlgolia(): Promise<void> {
     await algoliaIndex.setSettings({
         searchableAttributes: [
             'name',
+            'subtitle',
             'descriptionText'
         ],
         customRanking: [

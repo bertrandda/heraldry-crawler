@@ -4,10 +4,12 @@ import chunk from 'lodash.chunk'
 import { Raw } from 'typeorm'
 import algoliasearch, { SearchIndex } from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
-import { FamilyArmorial } from '../src/lib/FamilyArmorial'
+import { SingleBar, Presets } from 'cli-progress'
+import { uploadFile } from '../src/lib/S3Client'
 import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
 import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
+import { FamilyArmorialByRegion } from '../src/lib/FamilyArmorialByRegion'
 
 async function main(): Promise<void> {
     dotenv.config()
@@ -28,9 +30,16 @@ async function main(): Promise<void> {
         return
     }
 
+    const S3_INDEXING = process.env.S3_INDEXING === 'true'
+    if (S3_INDEXING && !process.env.S3_ACCESS_KEY_ID) {
+        console.log('To index emblem in S3, you need to set S3 variables')
+        return
+    }
+
     console.log(`Data will be indexed to:`)
     ALGOLIA_INDEXING && console.log('- Algolia')
     ELASTIC_INDEXING && console.log('- Elasticsearch')
+    S3_INDEXING && console.log('- S3')
 
     const connection = await dataSource.initialize()
 
@@ -42,7 +51,7 @@ async function main(): Promise<void> {
         .execute()
 
     console.log('Start family armorial crawling')
-    await FamilyArmorial.crawlPage(emblemRepo)
+    await FamilyArmorialByRegion.crawlPage(emblemRepo)
     console.log('Start municipality armorial crawling')
     await MunicipalityArmorial.crawlPage(emblemRepo)
 
@@ -94,11 +103,13 @@ async function main(): Promise<void> {
             await algoliaIndex.saveObjects(toBeAdded.map((emblem): Record<string, string | string[] | number> => ({
                 objectID: emblem.id,
                 name: emblem.name,
+                subtitle: emblem.subtitle,
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
                 sourceUrl: emblem.sourceUrl,
-                _tags: [emblem.armorial],
+                path: emblem.path,
+                _tags: [emblem.armorial, emblem.country],
                 credits: emblem.credits,
             })), { autoGenerateObjectIDIfNotExist: true })
         }
@@ -109,11 +120,13 @@ async function main(): Promise<void> {
                         body: toBeAddedChunk.map((emblem): Record<string, string | string[] | number> => ({
                             emblem_id: emblem.id,
                             name: emblem.name,
+                            subtitle: emblem.subtitle,
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
                             source_url: emblem.sourceUrl,
-                            tags: [emblem.armorial],
+                            path: emblem.path,
+                            tags: [emblem.armorial, emblem.country],
                             credits: emblem.credits,
                         })).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
                     })
@@ -123,6 +136,18 @@ async function main(): Promise<void> {
                 console.log(e);
             }
         }
+        if (S3_INDEXING) {
+            console.log('Upload to S3')
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(toBeAdded.length, 0);
+            await Promise.map(toBeAdded, async emblem => {
+                await uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))
+                bar.increment()
+                return
+            }, { concurrency: 100 })
+            bar.stop();
+        }
+
         await Promise.all(chunk(toBeAdded, 500).map(toBeAddedChunk =>
             emblemRepo.update(toBeAddedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
         ))
@@ -138,11 +163,13 @@ async function main(): Promise<void> {
             await algoliaIndex.saveObjects(toBeUpdated.map((emblem): Record<string, string | string[] | number> => ({
                 objectID: emblem.id,
                 name: emblem.name,
+                subtitle: emblem.subtitle,
                 description: emblem.description,
                 descriptionText: emblem.descriptionText,
                 imageUrl: emblem.imageUrl,
                 sourceUrl: emblem.sourceUrl,
-                _tags: [emblem.armorial],
+                path: emblem.path,
+                _tags: [emblem.armorial, emblem.country],
                 credits: emblem.credits,
             })))
         }
@@ -153,11 +180,13 @@ async function main(): Promise<void> {
                         body: toBeUpdatedChunk.map((emblem): Record<string, string | string[] | number> => ({
                             emblem_id: emblem.id,
                             name: emblem.name,
+                            subtitle: emblem.subtitle,
                             description: emblem.description,
                             description_text: emblem.descriptionText,
                             image_url: emblem.imageUrl,
                             source_url: emblem.sourceUrl,
-                            tags: [emblem.armorial],
+                            path: emblem.path,
+                            tags: [emblem.armorial, emblem.country],
                             credits: emblem.credits,
                         })).flatMap(elasticEmblem => [{
                             index: {
@@ -171,6 +200,18 @@ async function main(): Promise<void> {
                 console.log(e);
             }
         }
+        if (S3_INDEXING) {
+            console.log('Upload to S3')
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(toBeUpdated.length, 0);
+            await Promise.map(toBeUpdated, async emblem => {
+                await uploadFile(`${emblem.path}.json`, JSON.stringify(emblem))
+                bar.increment()
+                return
+            }, { concurrency: 100 })
+            bar.stop();
+        }
+
         await Promise.all(chunk(toBeUpdated, 500).map(toBeUpdatedChunk =>
             emblemRepo.update(toBeUpdatedChunk.map((emblem: Emblem): number => emblem.id), { indexedAt: new Date() })
         ))

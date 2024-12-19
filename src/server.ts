@@ -29,7 +29,7 @@ app.post('/search', async ({ body: { requests } }, res) => {
                     ...(requests[0].params.query && {
                         query_string: {
                             query: requests[0].params.query.trim().split(' ').map((word: string, i: integer) => i > 0 ? ` AND *${word}*` : `*${word}*`).join(''),
-                            fields: ['name', 'description_text'],
+                            fields: ['name', 'subtitle', 'description_text'],
                         }
                     })
                 },
