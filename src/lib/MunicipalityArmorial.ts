@@ -80,6 +80,12 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
+                    const relatedPage = $1(elem).find('caption a').attr('href').split('/').pop()
+                    if (emblem.relatedPage !== relatedPage) {
+                        emblem.relatedPage = relatedPage
+                        updated = true
+                    }
+
                     emblem.updatedAt = updated ? new Date() : emblem.updatedAt
                     emblem.check = true
 

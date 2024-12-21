@@ -3,7 +3,7 @@ import algoliasearch from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
 import { Emblem } from '../src/entity/Emblem'
 
-dotenv.config()
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
 async function initAlgolia(): Promise<void> {
     if (!process.env.ALGOLIA_APPLICATION_ID) {

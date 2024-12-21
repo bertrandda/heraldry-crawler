@@ -11,7 +11,7 @@ import { Emblem } from '../src/entity/Emblem'
 import WikiUtils from '../src/lib/WikiUtils'
 
 async function crawlCredits() {
-    dotenv.config()
+    dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
     const ALGOLIA_INDEXING = process.env.ALGOLIA_INDEXING === 'true'
     if (ALGOLIA_INDEXING && !process.env.ALGOLIA_APPLICATION_ID) {

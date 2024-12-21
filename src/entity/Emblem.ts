@@ -40,6 +40,21 @@ export class Emblem {
     credits: string = ''
 
     @Column()
+    relatedPage: string = ''
+
+    @Column()
+    population: number
+
+    @Column()
+    lat: number
+
+    @Column()
+    lon: number
+
+    @Column({ unique: true })
+    geohash: string
+
+    @Column()
     check: boolean = true
 
     @Column()
@@ -90,6 +105,18 @@ export class Emblem {
                 type: 'keyword',
             },
             credits: {
+                type: 'keyword',
+            },
+            related_page: {
+                type: 'keyword',
+            },
+            population: {
+                type: 'integer',
+            },
+            location: {
+                type: 'geo_point',
+            },
+            geohash: {
                 type: 'keyword',
             },
         },

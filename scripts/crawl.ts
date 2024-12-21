@@ -12,7 +12,7 @@ import { Emblem } from '../src/entity/Emblem'
 import { FamilyArmorialByRegion } from '../src/lib/FamilyArmorialByRegion'
 
 async function main(): Promise<void> {
-    dotenv.config()
+    dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
     const ALGOLIA_INDEXING = process.env.ALGOLIA_INDEXING === 'true'
     if (ALGOLIA_INDEXING && !process.env.ALGOLIA_APPLICATION_ID) {

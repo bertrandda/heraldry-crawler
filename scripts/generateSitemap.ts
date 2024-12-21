@@ -5,7 +5,7 @@ import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
 
 async function main(): Promise<void> {
-    dotenv.config()
+    dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
     if (!process.env.S3_ACCESS_KEY_ID) {
         console.log('To index emblem in S3, you need to set S3 variables')
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
        }).join('')}
     </urlset>`
 
-    await fs.writeFile('data/sitemap.xml', sitemap)
+    await fs.writeFile(`data/${process.env.NODE_ENV}/sitemap.xml`, sitemap)
     await uploadFile('sitemap.xml', sitemap)
     console.log(`${emblems.length} emblems added in sitemap`)
 }

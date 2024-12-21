@@ -1,6 +1,7 @@
 node_modules
 *.sqlite
 .env
+.env.*
 dist
 .vscode
 .tmp
