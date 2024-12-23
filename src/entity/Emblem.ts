@@ -40,7 +40,7 @@ export class Emblem {
     credits: string = ''
 
     @Column()
-    relatedPage: string = ''
+    relatedPage: string
 
     @Column()
     population: number
@@ -121,4 +121,46 @@ export class Emblem {
             },
         },
     }
+
+    static algoliaRelationship = (emblem: Emblem) => ({
+        objectID: emblem.id,
+        name: emblem.name,
+        subtitle: emblem.subtitle,
+        description: emblem.description,
+        descriptionText: emblem.descriptionText,
+        imageUrl: emblem.imageUrl,
+        sourceUrl: emblem.sourceUrl,
+        path: emblem.path,
+        ...(emblem.population && { population: emblem.population }),
+        ...(emblem.geohash && { geohash: emblem.geohash }),
+        ...((emblem.lat && emblem.lon) && {
+            _geoloc: {
+                lat: emblem.lat,
+                lng: emblem.lon
+            }
+        }),
+        _tags: [emblem.armorial, emblem.country],
+        ...(emblem.credits && { credits: emblem.credits }),
+    })
+
+    static esRelationship = (emblem: Emblem) => ({
+        emblem_id: emblem.id,
+        name: emblem.name,
+        subtitle: emblem.subtitle,
+        description: emblem.description,
+        description_text: emblem.descriptionText,
+        image_url: emblem.imageUrl,
+        source_url: emblem.sourceUrl,
+        path: emblem.path,
+        ...(emblem.population && { population: emblem.population }),
+        ...(emblem.geohash && { geohash: emblem.geohash }),
+        ...((emblem.lat && emblem.lon) && {
+            location: {
+                lat: emblem.lat,
+                lon: emblem.lon
+            }
+        }),
+        tags: [emblem.armorial, emblem.country],
+        ...(emblem.credits && { credits: emblem.credits }),
+    })
 }

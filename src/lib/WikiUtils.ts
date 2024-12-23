@@ -1,4 +1,5 @@
 import axios from 'axios'
+import cheerio from 'cheerio'
 
 export default class WikiUtils {
     static async getImageCredits(imageTitle: string): Promise<string> {
@@ -26,5 +27,27 @@ export default class WikiUtils {
         }
 
         return `${artist}${(artist && license) ? ` / ` : ''}${license}`
+    }
+
+    static async getCityMetadata(pageTitle: string): Promise<{
+        lon: number
+        lat: number
+        population: number
+    }> {
+        const response = await axios.get(`https://fr.wikipedia.org/api/rest_v1/page/mobile-html/${pageTitle}`)
+        const $ = cheerio.load(response.data)
+
+        const geoLocElem = $('tr:contains("Coordonnées")')
+        const popElem = $('tr:contains("Population")')
+
+        const lon = $(geoLocElem).find('td a').attr('data-lon') ? Number($(geoLocElem).find('td a').attr('data-lon')) : null
+        const lat = $(geoLocElem).find('td a').attr('data-lat') ? Number($(geoLocElem).find('td a').attr('data-lat')) : null
+        const population = $(popElem).find('td').text().match(/^([0-9]|\s)+/)?.[0].replace(/\s/g, '') ? Number($(popElem).find('td').text().match(/^([0-9]|\s)+/)?.[0].replace(/\s/g, '')) : null
+
+        return {
+            ...(lon && { lon }),
+            ...(lat && { lat }),
+            ...(population && { population }),
+        }
     }
 }

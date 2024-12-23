@@ -61,36 +61,14 @@ async function crawlCredits() {
             const client = algoliasearch(process.env.ALGOLIA_APPLICATION_ID, process.env.ALGOLIA_API_KEY)
             const algoliaIndex = client.initIndex(process.env.ALGOLIA_INDEX || 'emblems')
 
-            await algoliaIndex.saveObjects(emblemCredited.map((emblem): Record<string, string | string[] | number> => ({
-                objectID: emblem.id,
-                name: emblem.name,
-                subtitle: emblem.subtitle,
-                description: emblem.description,
-                descriptionText: emblem.descriptionText,
-                imageUrl: emblem.imageUrl,
-                sourceUrl: emblem.sourceUrl,
-                path: emblem.path,
-                _tags: [emblem.armorial, emblem.country],
-                credits: emblem.credits,
-            })))
+            await algoliaIndex.saveObjects(emblemCredited.map(Emblem.algoliaRelationship))
         }
         if (ELASTIC_INDEXING) {
             try {
                 const elasticClient = new Client({ node: process.env.ELASTIC_URL })
                 await Promise.map(chunk(emblemCredited, 5000), async creditedChunk => {
                     await elasticClient.bulk({
-                        body: creditedChunk.map((emblem): Record<string, string | string[] | number> => ({
-                            emblem_id: emblem.id,
-                            name: emblem.name,
-                            subtitle: emblem.subtitle,
-                            description: emblem.description,
-                            description_text: emblem.descriptionText,
-                            image_url: emblem.imageUrl,
-                            source_url: emblem.sourceUrl,
-                            path: emblem.path,
-                            tags: [emblem.armorial, emblem.country],
-                            credits: emblem.credits,
-                        })).flatMap(elasticEmblem => [{
+                        body: creditedChunk.map(Emblem.esRelationship).flatMap(elasticEmblem => [{
                             index: {
                                 _index: Emblem.index, _id: elasticEmblem.emblem_id.toString()
                             }

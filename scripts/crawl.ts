@@ -100,35 +100,13 @@ async function main(): Promise<void> {
     })
     if (toBeAdded.length > 0) {
         if (ALGOLIA_INDEXING) {
-            await algoliaIndex.saveObjects(toBeAdded.map((emblem): Record<string, string | string[] | number> => ({
-                objectID: emblem.id,
-                name: emblem.name,
-                subtitle: emblem.subtitle,
-                description: emblem.description,
-                descriptionText: emblem.descriptionText,
-                imageUrl: emblem.imageUrl,
-                sourceUrl: emblem.sourceUrl,
-                path: emblem.path,
-                _tags: [emblem.armorial, emblem.country],
-                credits: emblem.credits,
-            })), { autoGenerateObjectIDIfNotExist: true })
+            await algoliaIndex.saveObjects(toBeAdded.map(Emblem.algoliaRelationship), { autoGenerateObjectIDIfNotExist: true })
         }
         if (ELASTIC_INDEXING) {
             try {
                 await Promise.map(chunk(toBeAdded, 5000), async toBeAddedChunk => {
                     await elasticClient.bulk({
-                        body: toBeAddedChunk.map((emblem): Record<string, string | string[] | number> => ({
-                            emblem_id: emblem.id,
-                            name: emblem.name,
-                            subtitle: emblem.subtitle,
-                            description: emblem.description,
-                            description_text: emblem.descriptionText,
-                            image_url: emblem.imageUrl,
-                            source_url: emblem.sourceUrl,
-                            path: emblem.path,
-                            tags: [emblem.armorial, emblem.country],
-                            credits: emblem.credits,
-                        })).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
+                        body: toBeAddedChunk.map(Emblem.esRelationship).flatMap(elasticEmblem => [{ index: { _index: Emblem.index, _id: elasticEmblem.emblem_id.toString() } }, elasticEmblem])
                     })
                 }, { concurrency: 1 })
             } catch (e) {
@@ -160,35 +138,13 @@ async function main(): Promise<void> {
     })
     if (toBeUpdated.length > 0) {
         if (ALGOLIA_INDEXING) {
-            await algoliaIndex.saveObjects(toBeUpdated.map((emblem): Record<string, string | string[] | number> => ({
-                objectID: emblem.id,
-                name: emblem.name,
-                subtitle: emblem.subtitle,
-                description: emblem.description,
-                descriptionText: emblem.descriptionText,
-                imageUrl: emblem.imageUrl,
-                sourceUrl: emblem.sourceUrl,
-                path: emblem.path,
-                _tags: [emblem.armorial, emblem.country],
-                credits: emblem.credits,
-            })))
+            await algoliaIndex.saveObjects(toBeUpdated.map(Emblem.algoliaRelationship))
         }
         if (ELASTIC_INDEXING) {
             try {
                 await Promise.map(chunk(toBeUpdated, 5000), async toBeUpdatedChunk => {
                     await elasticClient.bulk({
-                        body: toBeUpdatedChunk.map((emblem): Record<string, string | string[] | number> => ({
-                            emblem_id: emblem.id,
-                            name: emblem.name,
-                            subtitle: emblem.subtitle,
-                            description: emblem.description,
-                            description_text: emblem.descriptionText,
-                            image_url: emblem.imageUrl,
-                            source_url: emblem.sourceUrl,
-                            path: emblem.path,
-                            tags: [emblem.armorial, emblem.country],
-                            credits: emblem.credits,
-                        })).flatMap(elasticEmblem => [{
+                        body: toBeUpdatedChunk.map(Emblem.esRelationship).flatMap(elasticEmblem => [{
                             index: {
                                 _index: Emblem.index, _id: elasticEmblem.emblem_id.toString()
                             }
