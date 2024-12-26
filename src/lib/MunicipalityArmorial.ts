@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
 import { Repository } from 'typeorm';
 import Utils from './Utils';
+import { Presets, SingleBar } from 'cli-progress';
 
 export class MunicipalityArmorial {
     private static _armorialUrls = ['https://fr.wikipedia.org/wiki/Armorial_des_communes_de_France']
@@ -21,6 +22,8 @@ export class MunicipalityArmorial {
                 deptPages.push({ dept: $(elem).text(), url: (<cheerio.TagElement>elem).attribs.href })
             })
 
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(deptPages.length, 0);
             await Promise.map(deptPages, async ({ dept, url }, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
@@ -29,7 +32,7 @@ export class MunicipalityArmorial {
 
                 $1('sup').remove()
 
-                const promises = $1('.wikitable').get().map(async (elem, i) => {
+                await Promise.all($1('.wikitable').get().map(async (elem, i) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
                     if ($1(elem).prop('class') !== 'wikitable') return false
 
@@ -90,10 +93,10 @@ export class MunicipalityArmorial {
                     emblem.check = true
 
                     return repository.save(emblem)
-                })
-
-                await Promise.all(promises)
+                }))
+                bar.increment()
             }, { concurrency: 15 })
+            bar.stop();
         }))
 
         return true
