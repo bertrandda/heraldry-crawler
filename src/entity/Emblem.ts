@@ -39,6 +39,9 @@ export class Emblem {
     @Column()
     credits: string = ''
 
+    @Column({ type: 'json' })
+    size: number[]
+
     @Column()
     relatedPage: string
 
@@ -107,6 +110,9 @@ export class Emblem {
             credits: {
                 type: 'keyword',
             },
+            size: {
+                type: 'integer',
+            },
             related_page: {
                 type: 'keyword',
             },
@@ -141,6 +147,7 @@ export class Emblem {
         }),
         _tags: [emblem.armorial, emblem.country],
         ...(emblem.credits && { credits: emblem.credits }),
+        ...(emblem.size && { size: emblem.size }),
     })
 
     static esRelationship = (emblem: Emblem) => ({
@@ -162,5 +169,6 @@ export class Emblem {
         }),
         tags: [emblem.armorial, emblem.country],
         ...(emblem.credits && { credits: emblem.credits }),
+        ...(emblem.size && { size: emblem.size }),
     })
 }

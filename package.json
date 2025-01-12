@@ -5,12 +5,13 @@
   "main": "dist/index.js",
   "scripts": {
     "typeorm": "ts-node ./node_modules/.bin/typeorm",
-    "init-dbs": "rm -f data/db.sqlite && yarn init-indices",
+    "init-dbs": "rm -f data/dev/db.sqlite && yarn init-indices",
     "init-indices": "ts-node scripts/initIndices.ts",
     "crawl": "ts-node scripts/crawl.ts",
     "crawl-credits": "ts-node scripts/crawlCredits.ts",
     "crawl-geoloc": "ts-node scripts/crawlLocations.ts",
     "generate-sitemap": "ts-node scripts/generateSitemap.ts",
+    "push-db": "ts-node scripts/pushFullDB.ts",
     "start": "nodemon src/server.ts",
     "lint": "eslint ./scripts ./src",
     "test": "echo \"Error: no test specified\" && exit 1"

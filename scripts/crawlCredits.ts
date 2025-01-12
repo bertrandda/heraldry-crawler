@@ -51,10 +51,14 @@ async function crawlCredits() {
         const bar = new SingleBar({}, Presets.legacy)
         bar.start(emblemToCredits.length, 0);
         const emblemCredited = await Promise.map(emblemToCredits, async emblem => {
-            emblem.credits = await WikiUtils.getImageCredits(decodeURIComponent(emblem.imageUrl.split('/').pop().replace(/^\d{1,3}px-/, '')))
+            const { credits, size } = await WikiUtils.getImageMeta(decodeURIComponent(emblem.imageUrl.split('/').pop().replace(/^\d{1,3}px-/, '')))
+
+            emblem.credits = credits || null
+            emblem.size = size || null
+
             bar.increment()
             return emblem
-        }, { concurrency: 20 }).filter(emblem => emblem.credits !== null)
+        }, { concurrency: 20 }).filter(emblem => (emblem.credits !== null || emblem.size !== null))
         bar.stop();
 
         if (ALGOLIA_INDEXING) {

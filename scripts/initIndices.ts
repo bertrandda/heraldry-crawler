@@ -32,7 +32,7 @@ async function initAlgolia(): Promise<void> {
             'descriptionText'
         ],
         customRanking: [
-            'asc(name)'
+            'desc(population)'
         ],
         indexLanguages: ['fr'],
         queryLanguages: ['fr'],
