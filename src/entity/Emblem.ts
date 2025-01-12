@@ -48,10 +48,10 @@ export class Emblem {
     @Column()
     population: number
 
-    @Column()
+    @Column({type: 'decimal', precision: 12, scale: 10})
     lat: number
 
-    @Column()
+    @Column({type: 'decimal', precision: 12, scale: 10})
     lon: number
 
     @Column({ unique: true })
