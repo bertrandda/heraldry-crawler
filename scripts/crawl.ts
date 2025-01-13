@@ -10,6 +10,7 @@ import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
 import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
 import { FamilyArmorialByRegion } from '../src/lib/FamilyArmorialByRegion'
+import { LocalDataArmorial } from '../src/lib/LocalDataArmorial'
 
 async function main(): Promise<void> {
     dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
@@ -50,6 +51,8 @@ async function main(): Promise<void> {
         .set({ check: false })
         .execute()
 
+    console.log('Start local raw data crawling')
+    await LocalDataArmorial.crawlPage(emblemRepo)
     console.log('Start family armorial crawling')
     await FamilyArmorialByRegion.crawlPage(emblemRepo)
     console.log('Start municipality armorial crawling')

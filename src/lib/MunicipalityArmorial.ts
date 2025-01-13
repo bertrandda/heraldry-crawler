@@ -17,7 +17,16 @@ export class MunicipalityArmorial {
             const response = await axios.get(url)
             $ = cheerio.load(response.data)
 
-            const deptPages: Record<string, string>[] = []
+            const deptPages: Record<string, string>[] = [
+                // custom pages not handled automatically
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(A-C)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(D-H)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(I-P)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(Q-Z)' },
+                { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(A-H)' },
+                { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(I-R)' },
+                { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(S-Z)' },
+            ]
             $('.wikitable').first().find('li a').each(async (i, elem): Promise<void> => {
                 deptPages.push({ dept: $(elem).text(), url: (<cheerio.TagElement>elem).attribs.href })
             })
@@ -25,16 +34,16 @@ export class MunicipalityArmorial {
             const bar = new SingleBar({}, Presets.legacy)
             bar.start(deptPages.length, 0);
             await Promise.map(deptPages, async ({ dept, url }, i): Promise<void> => {
-                if (process.env.NODE_ENV !== 'prod' && i > 3) return
+                if (process.env.NODE_ENV !== 'prod' && i > 10) return
 
-                const page = await axios.get('https://fr.wikipedia.org' + url)
+                const page = await axios.get(`https://fr.wikipedia.org/api/rest_v1/page/mobile-html/${url.split('/').pop()}`)
                 const $1: cheerio.Root = cheerio.load(page.data)
 
                 $1('sup').remove()
 
                 await Promise.all($1('.wikitable').get().map(async (elem, i) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
-                    if ($1(elem).prop('class') !== 'wikitable') return false
+                    if ($1(elem).prop('class') !== 'wikitable pcs-collapse-table') return false
 
                     const emblemName = $1(elem).prop('id') ? $1(elem).prop('id').replace(/_/g, ' ').trim() : undefined
                     if (!emblemName) return false
@@ -56,7 +65,7 @@ export class MunicipalityArmorial {
                     emblem.country = 'france'
                     emblem.path = `/ville/${emblem.country}/${Utils.slugify(dept.split('–')[1].trim())}/${Utils.slugify(emblemName)}`
 
-                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description img').attr('src'))
+                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description .mw-file-element').attr('src') ?? $1(elem).find('.mw-file-description .mw-file-element').attr('data-src'))
                     newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                     if (emblem.imageUrl !== newImageUrl) {
                         emblem.imageUrl = newImageUrl
@@ -96,7 +105,7 @@ export class MunicipalityArmorial {
                     return repository.save(emblem)
                 }))
                 bar.increment()
-            }, { concurrency: 15 })
+            }, { concurrency: 5 })
             bar.stop();
         }))
 

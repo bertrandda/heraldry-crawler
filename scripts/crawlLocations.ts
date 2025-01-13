@@ -57,7 +57,9 @@ async function crawlLocations() {
                 emblem = {
                     ...emblem,
                     ...metadata,
-                    ...((metadata.lat && metadata.lon) && { geohash: encode(metadata.lat, metadata.lon) })
+                    ...((metadata.lat && metadata.lon) && { geohash: encode(metadata.lat, metadata.lon) }),
+                    // reduce population for Parisian's arrondissement to avoid overlaps on map view
+                    ...(metadata.population && emblem.name.includes('arrondissement') && { population: metadata.population / 100 })
                 }
             } catch (error) {
                 console.log(`Can't get metadata for ${emblem.relatedPage}`)
@@ -103,7 +105,7 @@ async function crawlLocations() {
             bar.stop();
         }
 
-        await Promise.all(emblemLocated.map(async ({id, relatedPage, lon, lat, geohash, population}) => {
+        await Promise.all(emblemLocated.map(async ({ id, relatedPage, lon, lat, geohash, population }) => {
             try {
                 await emblemRepo.update({ id }, {
                     ...(lon && { lon }),

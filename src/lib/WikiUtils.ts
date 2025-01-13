@@ -16,7 +16,7 @@ export default class WikiUtils {
             }
         })
 
-        const { extmetadata, width, height } = Object.values<any>(response.pages)[0].imageinfo?.[0]
+        const { extmetadata, width, height } = Object.values<any>(response.pages)[0].imageinfo?.[0] || {}
 
         if (extmetadata) {
             const artist = extmetadata.Artist?.value || ''

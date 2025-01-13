@@ -58,7 +58,7 @@ async function crawlCredits() {
 
             bar.increment()
             return emblem
-        }, { concurrency: 20 }).filter(emblem => (emblem.credits !== null || emblem.size !== null))
+        }, { concurrency: 10 }).filter(emblem => (emblem.credits !== null || emblem.size !== null))
         bar.stop();
 
         if (ALGOLIA_INDEXING) {

@@ -1,0 +1,12 @@
+  {
+    "slug": "75-paris-paris",
+    "name": "Paris",
+    "path": "/ville/france/paris/paris",
+    "description": "<td width=\"100%\"><div style=\"font-style:italic;\">De gueules à une nef equipée et habillée d'argent voguant sur des ondes du même mouvant de la pointe, au chef d'azur fleurdelysé d'or.</div></td>",
+    "descriptionText": "De gueules à une nef equipée et habillée d'argent voguant sur des ondes du même mouvant de la pointe, au chef d'azur fleurdelysé d'or.",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Blason_paris_75.svg",
+    "sourceUrl": "https://fr.wikipedia.org/wiki/Blason_de_Paris",
+    "armorial": "municipality",
+    "country": "france",
+    "relatedPage": "Paris"
+  }
