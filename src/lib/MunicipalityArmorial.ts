@@ -18,11 +18,21 @@ export class MunicipalityArmorial {
             $ = cheerio.load(response.data)
 
             const deptPages: Record<string, string>[] = [
-                // custom pages not handled automatically
+                // splited pages not handled automatically
+                { dept: '57 – Moselle', url: '/wiki/Armorial_des_communes_de_la_Moselle_(A_-_K)' },
+                { dept: '57 – Moselle', url: '/wiki/Armorial_des_communes_de_la_Moselle_(L_-_Z)' },
                 { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(A-C)' },
                 { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(D-H)' },
                 { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(I-P)' },
                 { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(Q-Z)' },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(A-C)" },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(D-H)" },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(I-P)" },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(Q-Z)" },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(A-C)' },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(D-H)' },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(I-P)' },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(Q-Z)' },
                 { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(A-H)' },
                 { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(I-R)' },
                 { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(S-Z)' },
