@@ -17,20 +17,31 @@ async function main(): Promise<void> {
     const emblemRepo = connection.getRepository(Emblem)
 
     // Add emblems to sitemap...
-    const emblems = await emblemRepo.find()
+    const emblems = await emblemRepo.find({
+        order: {
+            population: 'DESC',
+            name: 'ASC',
+        }
+    })
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
        <url>
           <loc>https://armorialdefrance.org/</loc>
           <lastmod>${(new Date()).toISOString().split('T')[0]}</lastmod>
-          <changefreq>monthly</changefreq>
+          <changefreq>yearly</changefreq>
+          <priority>0.8</priority>
+       </url>
+       <url>
+          <loc>https://armorialdefrance.org/maps</loc>
+          <lastmod>${(new Date()).toISOString().split('T')[0]}</lastmod>
+          <changefreq>yearly</changefreq>
           <priority>0.8</priority>
        </url>
        ${emblems.map(emblem => {
         return `<url>
           <loc>https://armorialdefrance.org${emblem.path}</loc>
           <lastmod>${(new Date(emblem.updatedAt)).toISOString().split('T')[0]}</lastmod>
-          <changefreq>monthly</changefreq>
+          <changefreq>yearly</changefreq>
           <priority>0.5</priority>
         </url>`
        }).join('')}

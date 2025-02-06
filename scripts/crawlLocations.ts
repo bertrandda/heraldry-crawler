@@ -59,7 +59,7 @@ async function crawlLocations() {
                     ...metadata,
                     ...((metadata.lat && metadata.lon) && { geohash: encode(metadata.lat, metadata.lon) }),
                     // reduce population for Parisian's arrondissement to avoid overlaps on map view
-                    ...(metadata.population && emblem.name.includes('arrondissement') && { population: metadata.population / 100 })
+                    ...(metadata.population && emblem.name.includes('arrondissement') && { population: 3000 })
                 }
             } catch (error) {
                 console.log(`Can't get metadata for ${emblem.relatedPage}`)
