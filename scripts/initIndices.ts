@@ -67,12 +67,22 @@ async function initAlgolia(): Promise<void> {
         {
             objectID: 'gold',
             type: 'synonym',
-            synonyms: ['or', 'jaune']
+            synonyms: ['or', 'jaune', "d'or"]
         },
         {
             objectID: 'silver',
             type: 'synonym',
             synonyms: ['argent', 'blanche', 'blanc', 'gris']
+        },
+        {
+            objectID: 'saint',
+            type: 'synonym',
+            synonyms: ['saint', 'st']
+        },
+        {
+            objectID: 'sainte',
+            type: 'synonym',
+            synonyms: ['sainte', 'ste']
         },
     ], {
         replaceExistingSynonyms: true
