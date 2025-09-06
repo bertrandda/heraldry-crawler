@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import { Client } from '@elastic/elasticsearch'
 import { Emblem } from './entity/Emblem'
-import Utils from './lib/Utils'
+import { snakeToCamel } from './lib/Utils'
 import { integer } from '@elastic/elasticsearch/api/types'
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
@@ -49,7 +49,7 @@ app.post('/search', async ({ body: { requests } }, res) => {
                 hits: body.hits.hits.map(({ _source: source }: Record<string, Record<string, number | string | string[]>>) => {
                     const result: Record<string, number | string | string[]> = {}
                     Object.keys(source).forEach(key => {
-                        result[Utils.snakeToCamel(key)] = source[key]
+                        result[snakeToCamel(key)] = source[key]
                     })
 
                     return result

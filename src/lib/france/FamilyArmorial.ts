@@ -2,7 +2,7 @@ import cheerio from 'cheerio'
 import axios from 'axios'
 import { Emblem } from '../../entity/Emblem'
 import { Repository } from 'typeorm'
-import Utils from '../Utils'
+import { slugify, translateCountry, optimizeImageUrl } from '../Utils';
 
 export class FamilyArmorial {
     private static armorialUrls = ['https://fr.wikipedia.org/wiki/Armorial_des_familles_de_France']
@@ -57,7 +57,7 @@ export class FamilyArmorial {
 
                 let emblem
                 let updated = false
-                const slug = Utils.slugify(`${emblemName}`)
+                const slug = slugify(`${emblemName}`)
 
                 try {
                     emblem = await repository.findOneByOrFail({ slug, armorial: this.armorialName })
@@ -70,9 +70,9 @@ export class FamilyArmorial {
                 }
 
                 emblem.country = 'france'
-                emblem.path = `/famille/${emblem.country}/${emblem.slug}`
+                emblem.path = `/famille/${slugify(translateCountry(emblem.country))}/${emblem.slug}`
 
-                let newImageUrl = Utils.optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
+                let newImageUrl = optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
                 newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                 if (emblem.imageUrl !== newImageUrl) {
                     emblem.imageUrl = newImageUrl

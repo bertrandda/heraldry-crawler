@@ -11,6 +11,7 @@ import { Emblem } from '../src/entity/Emblem'
 import { MunicipalityArmorial as FranceMunicipalityArmorial } from '../src/lib/france/MunicipalityArmorial'
 import { FamilyArmorialByRegion as FranceFamilyArmorialByRegion } from '../src/lib/france/FamilyArmorialByRegion'
 import { MunicipalityArmorial as BelgiumMunicipalityArmorial } from '../src/lib/belgium/MunicipalityArmorial'
+import { FamilyArmorial as BelgiumFamilyArmorial } from '../src/lib/belgium/FamilyArmorial'
 import { LocalDataArmorial } from '../src/lib/LocalDataArmorial'
 
 async function main(): Promise<void> {
@@ -70,6 +71,8 @@ async function main(): Promise<void> {
     }
 
     if (countries.includes('belgium')) {
+        console.log('Start Belgium family armorial crawling')
+        await BelgiumFamilyArmorial.crawlPage(emblemRepo)
         console.log('Start Belgium municipality armorial crawling')
         await BelgiumMunicipalityArmorial.crawlPage(emblemRepo)
     }

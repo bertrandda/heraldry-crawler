@@ -3,7 +3,7 @@ import { Promise } from 'bluebird'
 import axios from 'axios'
 import { Emblem } from '../../entity/Emblem'
 import { QueryFailedError, Repository } from 'typeorm';
-import Utils from '../Utils';
+import { slugify, translateCountry, optimizeImageUrl } from '../Utils';
 import { Presets, SingleBar } from 'cli-progress';
 
 export class MunicipalityArmorial {
@@ -41,7 +41,7 @@ export class MunicipalityArmorial {
 
                     let emblem
                     let updated = false
-                    const slug = Utils.slugify(`${province} ${emblemName}`)
+                    const slug = slugify(`${province} ${emblemName}`)
 
                     try {
                         emblem = await repository.findOneByOrFail({ slug, armorial: this.armorialName })
@@ -54,9 +54,9 @@ export class MunicipalityArmorial {
                     }
 
                     emblem.country = 'belgium'
-                    emblem.path = `/ville/${emblem.country}/${Utils.slugify(province)}/${Utils.slugify(emblemName)}`
+                    emblem.path = `/ville/${slugify(translateCountry(emblem.country))}/${slugify(province)}/${slugify(emblemName)}`
 
-                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description .mw-file-element').attr('src') ?? $1(elem).find('.mw-file-description .mw-file-element').attr('data-src'))
+                    let newImageUrl = optimizeImageUrl($1(elem).find('.mw-file-description .mw-file-element').attr('src') ?? $1(elem).find('.mw-file-description .mw-file-element').attr('data-src'))
                     newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                     if (emblem.imageUrl !== newImageUrl) {
                         emblem.imageUrl = newImageUrl
