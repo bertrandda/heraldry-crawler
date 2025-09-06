@@ -1,8 +1,8 @@
 import cheerio from 'cheerio'
 import axios from 'axios'
-import { Emblem } from '../entity/Emblem'
+import { Emblem } from '../../entity/Emblem'
 import { Repository } from 'typeorm'
-import Utils from './Utils'
+import Utils from '../Utils'
 
 export class FamilyArmorial {
     private static armorialUrls = ['https://fr.wikipedia.org/wiki/Armorial_des_familles_de_France']

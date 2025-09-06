@@ -26,15 +26,16 @@ export class LocalDataArmorial {
         return jsonFiles;
     }
 
-    public static async crawlPage(repository: Repository<Emblem>): Promise<boolean> {
+    public static async crawlPage(repository: Repository<Emblem>, countries: string[]): Promise<boolean> {
         const jsonFiles = await LocalDataArmorial.readJsonFilesFromDir('./data/raw');
         const bar = new SingleBar({}, Presets.legacy)
         bar.start(jsonFiles.length, 0);
         await Promise.map(jsonFiles, async (path, i): Promise<Emblem> => {
-            if (process.env.NODE_ENV !== 'prod' && i > 3) return
+            if (process.env.NODE_ENV !== 'prod' && i > 5) return
 
             const content = await fs.readFile(path, 'utf-8');
             const contentParsed = JSON.parse(content);
+            if (!countries.includes(contentParsed.country)) return
 
             let emblem
             let updated = false

@@ -1,9 +1,9 @@
 import cheerio from 'cheerio'
 import { Promise } from 'bluebird'
 import axios from 'axios'
-import { Emblem } from '../entity/Emblem'
+import { Emblem } from '../../entity/Emblem'
 import { QueryFailedError, Repository } from 'typeorm';
-import Utils from './Utils';
+import Utils from '../Utils';
 import { Presets, SingleBar } from 'cli-progress';
 
 export class FamilyArmorialByRegion {
