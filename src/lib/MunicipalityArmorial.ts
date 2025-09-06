@@ -2,7 +2,7 @@ import cheerio from 'cheerio'
 import { Promise } from 'bluebird'
 import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import Utils from './Utils';
 import { Presets, SingleBar } from 'cli-progress';
 
@@ -112,7 +112,14 @@ export class MunicipalityArmorial {
                     emblem.updatedAt = updated ? new Date() : emblem.updatedAt
                     emblem.check = true
 
-                    return repository.save(emblem)
+                    try {
+                        await repository.save(emblem)
+                    } catch (error) {
+                        if (!(error instanceof QueryFailedError && error.driverError.code === 'SQLITE_CONSTRAINT')) {
+                            console.log(error)
+                        }
+                    }
+                    return
                 }))
                 bar.increment()
             }, { concurrency: 5 })
