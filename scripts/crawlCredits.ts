@@ -11,7 +11,7 @@ import { Emblem } from '../src/entity/Emblem'
 import WikiUtils from '../src/lib/WikiUtils'
 
 async function crawlCredits() {
-    dotenv.config()
+    dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
     const ALGOLIA_INDEXING = process.env.ALGOLIA_INDEXING === 'true'
     if (ALGOLIA_INDEXING && !process.env.ALGOLIA_APPLICATION_ID) {
@@ -51,46 +51,28 @@ async function crawlCredits() {
         const bar = new SingleBar({}, Presets.legacy)
         bar.start(emblemToCredits.length, 0);
         const emblemCredited = await Promise.map(emblemToCredits, async emblem => {
-            emblem.credits = await WikiUtils.getImageCredits(decodeURIComponent(emblem.imageUrl.split('/').pop().replace(/^\d{1,3}px-/, '')))
+            const { credits, size } = await WikiUtils.getImageMeta(decodeURIComponent(emblem.imageUrl.split('/').pop().replace(/^\d{1,3}px-/, '')))
+
+            emblem.credits = credits || null
+            emblem.size = size || null
+
             bar.increment()
             return emblem
-        }, { concurrency: 20 }).filter(emblem => emblem.credits !== null)
+        }, { concurrency: 10 }).filter(emblem => (emblem.credits !== null || emblem.size !== null))
         bar.stop();
 
         if (ALGOLIA_INDEXING) {
             const client = algoliasearch(process.env.ALGOLIA_APPLICATION_ID, process.env.ALGOLIA_API_KEY)
             const algoliaIndex = client.initIndex(process.env.ALGOLIA_INDEX || 'emblems')
 
-            await algoliaIndex.saveObjects(emblemCredited.map((emblem): Record<string, string | string[] | number> => ({
-                objectID: emblem.id,
-                name: emblem.name,
-                subtitle: emblem.subtitle,
-                description: emblem.description,
-                descriptionText: emblem.descriptionText,
-                imageUrl: emblem.imageUrl,
-                sourceUrl: emblem.sourceUrl,
-                path: emblem.path,
-                _tags: [emblem.armorial, emblem.country],
-                credits: emblem.credits,
-            })))
+            await algoliaIndex.saveObjects(emblemCredited.map(Emblem.algoliaRelationship))
         }
         if (ELASTIC_INDEXING) {
             try {
                 const elasticClient = new Client({ node: process.env.ELASTIC_URL })
                 await Promise.map(chunk(emblemCredited, 5000), async creditedChunk => {
                     await elasticClient.bulk({
-                        body: creditedChunk.map((emblem): Record<string, string | string[] | number> => ({
-                            emblem_id: emblem.id,
-                            name: emblem.name,
-                            subtitle: emblem.subtitle,
-                            description: emblem.description,
-                            description_text: emblem.descriptionText,
-                            image_url: emblem.imageUrl,
-                            source_url: emblem.sourceUrl,
-                            path: emblem.path,
-                            tags: [emblem.armorial, emblem.country],
-                            credits: emblem.credits,
-                        })).flatMap(elasticEmblem => [{
+                        body: creditedChunk.map(Emblem.esRelationship).flatMap(elasticEmblem => [{
                             index: {
                                 _index: Emblem.index, _id: elasticEmblem.emblem_id.toString()
                             }

@@ -77,6 +77,7 @@ export class FamilyArmorial {
                 if (emblem.imageUrl !== newImageUrl) {
                     emblem.imageUrl = newImageUrl
                     emblem.credits = null
+                    emblem.size = null
                     updated = true
                 }
 

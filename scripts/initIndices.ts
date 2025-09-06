@@ -3,7 +3,7 @@ import algoliasearch from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
 import { Emblem } from '../src/entity/Emblem'
 
-dotenv.config()
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
 async function initAlgolia(): Promise<void> {
     if (!process.env.ALGOLIA_APPLICATION_ID) {
@@ -32,7 +32,7 @@ async function initAlgolia(): Promise<void> {
             'descriptionText'
         ],
         customRanking: [
-            'asc(name)'
+            'desc(population)'
         ],
         indexLanguages: ['fr'],
         queryLanguages: ['fr'],
@@ -67,12 +67,22 @@ async function initAlgolia(): Promise<void> {
         {
             objectID: 'gold',
             type: 'synonym',
-            synonyms: ['or', 'jaune']
+            synonyms: ['or', 'jaune', "d'or"]
         },
         {
             objectID: 'silver',
             type: 'synonym',
             synonyms: ['argent', 'blanche', 'blanc', 'gris']
+        },
+        {
+            objectID: 'saint',
+            type: 'synonym',
+            synonyms: ['saint', 'st']
+        },
+        {
+            objectID: 'sainte',
+            type: 'synonym',
+            synonyms: ['sainte', 'ste']
         },
     ], {
         replaceExistingSynonyms: true

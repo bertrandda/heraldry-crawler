@@ -2,8 +2,9 @@ import cheerio from 'cheerio'
 import { Promise } from 'bluebird'
 import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import Utils from './Utils';
+import { Presets, SingleBar } from 'cli-progress';
 
 export class MunicipalityArmorial {
     private static _armorialUrls = ['https://fr.wikipedia.org/wiki/Armorial_des_communes_de_France']
@@ -16,22 +17,43 @@ export class MunicipalityArmorial {
             const response = await axios.get(url)
             $ = cheerio.load(response.data)
 
-            const deptPages: Record<string, string>[] = []
+            const deptPages: Record<string, string>[] = [
+                // splited pages not handled automatically
+                { dept: '57 – Moselle', url: '/wiki/Armorial_des_communes_de_la_Moselle_(A_-_K)' },
+                { dept: '57 – Moselle', url: '/wiki/Armorial_des_communes_de_la_Moselle_(L_-_Z)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(A-C)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(D-H)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(I-P)' },
+                { dept: '59 – Nord', url: '/wiki/Armorial_des_communes_du_Nord_(Q-Z)' },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(A-C)" },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(D-H)" },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(I-P)" },
+                { dept: '60 – Oise', url: "/wiki/Armorial_des_communes_de_l'Oise_(Q-Z)" },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(A-C)' },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(D-H)' },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(I-P)' },
+                { dept: '62 – Pas-de-Calais', url: '/wiki/Armorial_des_communes_du_Pas-de-Calais_(Q-Z)' },
+                { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(A-H)' },
+                { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(I-R)' },
+                { dept: '67 – Bas-Rhin', url: '/wiki/Armorial_des_communes_du_Bas-Rhin_(S-Z)' },
+            ]
             $('.wikitable').first().find('li a').each(async (i, elem): Promise<void> => {
                 deptPages.push({ dept: $(elem).text(), url: (<cheerio.TagElement>elem).attribs.href })
             })
 
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(deptPages.length, 0);
             await Promise.map(deptPages, async ({ dept, url }, i): Promise<void> => {
-                if (process.env.NODE_ENV !== 'prod' && i > 3) return
+                if (process.env.NODE_ENV !== 'prod' && i > 10) return
 
-                const page = await axios.get('https://fr.wikipedia.org' + url)
+                const page = await axios.get(`https://fr.wikipedia.org/api/rest_v1/page/mobile-html/${url.split('/').pop()}`)
                 const $1: cheerio.Root = cheerio.load(page.data)
 
                 $1('sup').remove()
 
-                const promises = $1('.wikitable').get().map(async (elem, i) => {
+                await Promise.all($1('.wikitable').get().map(async (elem, i) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 5) return false
-                    if ($1(elem).prop('class') !== 'wikitable') return false
+                    if ($1(elem).prop('class') !== 'wikitable pcs-collapse-table') return false
 
                     const emblemName = $1(elem).prop('id') ? $1(elem).prop('id').replace(/_/g, ' ').trim() : undefined
                     if (!emblemName) return false
@@ -53,11 +75,12 @@ export class MunicipalityArmorial {
                     emblem.country = 'france'
                     emblem.path = `/ville/${emblem.country}/${Utils.slugify(dept.split('–')[1].trim())}/${Utils.slugify(emblemName)}`
 
-                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description img').attr('src'))
+                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description .mw-file-element').attr('src') ?? $1(elem).find('.mw-file-description .mw-file-element').attr('data-src'))
                     newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                     if (emblem.imageUrl !== newImageUrl) {
                         emblem.imageUrl = newImageUrl
                         emblem.credits = null
+                        emblem.size = null
                         updated = true
                     }
 
@@ -80,14 +103,27 @@ export class MunicipalityArmorial {
                         updated = true
                     }
 
+                    const relatedPage = $1(elem).find('caption a').attr('href').split('/').pop()
+                    if (emblem.relatedPage !== relatedPage) {
+                        emblem.relatedPage = relatedPage
+                        updated = true
+                    }
+
                     emblem.updatedAt = updated ? new Date() : emblem.updatedAt
                     emblem.check = true
 
-                    return repository.save(emblem)
-                })
-
-                await Promise.all(promises)
-            }, { concurrency: 15 })
+                    try {
+                        await repository.save(emblem)
+                    } catch (error) {
+                        if (!(error instanceof QueryFailedError && error.driverError.code === 'SQLITE_CONSTRAINT')) {
+                            console.log(error)
+                        }
+                    }
+                    return
+                }))
+                bar.increment()
+            }, { concurrency: 5 })
+            bar.stop();
         }))
 
         return true

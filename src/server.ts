@@ -6,7 +6,7 @@ import { Emblem } from './entity/Emblem'
 import Utils from './lib/Utils'
 import { integer } from '@elastic/elasticsearch/api/types'
 
-dotenv.config()
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
 const app = express()
 app.use(cors({ ...(process.env.ORIGIN_URL && { origin: process.env.ORIGIN_URL }) }))

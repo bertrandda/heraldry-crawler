@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Emblem } from '../entity/Emblem'
 import { QueryFailedError, Repository } from 'typeorm';
 import Utils from './Utils';
+import { Presets, SingleBar } from 'cli-progress';
 
 export class FamilyArmorialByRegion {
     private static _armorialUrls = ['https://fr.wikipedia.org/wiki/Armorial_des_familles_de_France']
@@ -58,6 +59,8 @@ export class FamilyArmorialByRegion {
                 regionPages.push({ region: $(elem).text(), url: `https://fr.wikipedia.org${(<cheerio.TagElement>elem).attribs.href}` })
             })
 
+            const bar = new SingleBar({}, Presets.legacy)
+            bar.start(regionPages.length, 0);
             await Promise.map(regionPages, async ({ region, url }, i): Promise<void> => {
                 if (process.env.NODE_ENV !== 'prod' && i > 3) return
 
@@ -67,7 +70,7 @@ export class FamilyArmorialByRegion {
                 $1('sup').remove()
                 $1('.bandeau-niveau-information').remove()
 
-                const promises = $1('.wikitable tbody tr').get().map(async (elem, i) => {
+                await Promise.all($1('.wikitable tbody tr').get().map(async (elem, i) => {
                     if (process.env.NODE_ENV !== 'prod' && i > 10) return false
                     if ($1(elem).find('th').first().text() === 'Figure') return false
 
@@ -96,6 +99,7 @@ export class FamilyArmorialByRegion {
                     if (emblem.imageUrl !== newImageUrl) {
                         emblem.imageUrl = newImageUrl
                         emblem.credits = null
+                        emblem.size = null
                         updated = true
                     }
 
@@ -124,17 +128,22 @@ export class FamilyArmorialByRegion {
                     emblem.check = true
 
                     try {
-                        await repository.save(emblem)
+                        if (emblem.id) {
+                            const { id, ...partEmblem } = emblem
+                            await repository.update({ id }, partEmblem)
+                        } else {
+                            await repository.insert(emblem)
+                        }
                     } catch (error) {
                         if (!(error instanceof QueryFailedError && error.driverError.code === 'SQLITE_CONSTRAINT')) {
                             console.log(error)
                         }
                     }
                     return
-                })
-
-                await Promise.all(promises)
+                }))
+                bar.increment()
             }, { concurrency: 1 })
+            bar.stop();
         }))
 
         return true
