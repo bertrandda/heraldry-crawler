@@ -137,6 +137,8 @@ export class Emblem {
         imageUrl: emblem.imageUrl,
         sourceUrl: emblem.sourceUrl,
         path: emblem.path,
+        armorial: emblem.armorial,
+        country: emblem.country,
         ...(emblem.population && { population: emblem.population }),
         ...(emblem.geohash && { geohash: emblem.geohash }),
         ...((emblem.lat && emblem.lon) && {
