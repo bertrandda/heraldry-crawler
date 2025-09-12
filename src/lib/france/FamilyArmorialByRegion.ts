@@ -1,9 +1,9 @@
 import cheerio from 'cheerio'
 import { Promise } from 'bluebird'
 import axios from 'axios'
-import { Emblem } from '../entity/Emblem'
+import { Emblem } from '../../entity/Emblem'
 import { QueryFailedError, Repository } from 'typeorm';
-import Utils from './Utils';
+import { slugify, translateCountry, optimizeImageUrl } from '../Utils';
 import { Presets, SingleBar } from 'cli-progress';
 
 export class FamilyArmorialByRegion {
@@ -79,7 +79,7 @@ export class FamilyArmorialByRegion {
 
                     let emblem
                     let updated = false
-                    const slug = Utils.slugify(`${region} ${emblemName}`)
+                    const slug = slugify(`${region} ${emblemName}`)
 
                     try {
                         emblem = await repository.findOneByOrFail({ slug, armorial: this.armorialName })
@@ -92,9 +92,9 @@ export class FamilyArmorialByRegion {
                     }
 
                     emblem.country = 'france'
-                    emblem.path = `/famille/${emblem.country}/${Utils.slugify(region)}/${Utils.slugify(emblemName)}`
+                    emblem.path = `/famille/${slugify(translateCountry(emblem.country))}/${slugify(region)}/${slugify(emblemName)}`
 
-                    let newImageUrl = Utils.optimizeImageUrl($1(elem).find('.mw-file-description img').attr('src'))
+                    let newImageUrl = optimizeImageUrl($1(elem).find('.mw-file-description img').attr('src'))
                     newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
                     if (emblem.imageUrl !== newImageUrl) {
                         emblem.imageUrl = newImageUrl

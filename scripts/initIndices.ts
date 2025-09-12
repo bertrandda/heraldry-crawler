@@ -36,6 +36,7 @@ async function initAlgolia(): Promise<void> {
         ],
         indexLanguages: ['fr'],
         queryLanguages: ['fr'],
+        attributesForFaceting: ['country', 'armorial'],
     })
 
     await algoliaIndex.saveSynonyms([

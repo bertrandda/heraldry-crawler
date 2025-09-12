@@ -6,14 +6,22 @@ import algoliasearch, { SearchIndex } from 'algoliasearch'
 import { Client } from '@elastic/elasticsearch'
 import { SingleBar, Presets } from 'cli-progress'
 import { uploadFile } from '../src/lib/S3Client'
-import { MunicipalityArmorial } from '../src/lib/MunicipalityArmorial'
 import { dataSource } from '../src/lib/OrmDataSource'
 import { Emblem } from '../src/entity/Emblem'
-import { FamilyArmorialByRegion } from '../src/lib/FamilyArmorialByRegion'
+import { MunicipalityArmorial as FranceMunicipalityArmorial } from '../src/lib/france/MunicipalityArmorial'
+import { FamilyArmorialByRegion as FranceFamilyArmorialByRegion } from '../src/lib/france/FamilyArmorialByRegion'
+import { MunicipalityArmorial as BelgiumMunicipalityArmorial } from '../src/lib/belgium/MunicipalityArmorial'
+import { FamilyArmorial as BelgiumFamilyArmorial } from '../src/lib/belgium/FamilyArmorial'
 import { LocalDataArmorial } from '../src/lib/LocalDataArmorial'
 
 async function main(): Promise<void> {
     dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
+
+    let countries = ['france']
+    if (process.env.COUNTRIES && process.env.COUNTRIES !== '') {
+        countries = process.env.COUNTRIES.split(',').map(c => c.trim().toLowerCase())
+    }
+    console.log(`Crawling data for: ${countries.join(', ')}`)
 
     const ALGOLIA_INDEXING = process.env.ALGOLIA_INDEXING === 'true'
     if (ALGOLIA_INDEXING && !process.env.ALGOLIA_APPLICATION_ID) {
@@ -48,15 +56,26 @@ async function main(): Promise<void> {
 
     await emblemRepo.createQueryBuilder()
         .update()
+        .where('country IN (:...countries)', { countries })
         .set({ check: false })
         .execute()
 
     console.log('Start local raw data crawling')
-    await LocalDataArmorial.crawlPage(emblemRepo)
-    console.log('Start family armorial crawling')
-    await FamilyArmorialByRegion.crawlPage(emblemRepo)
-    console.log('Start municipality armorial crawling')
-    await MunicipalityArmorial.crawlPage(emblemRepo)
+    await LocalDataArmorial.crawlPage(emblemRepo, countries)
+
+    if (countries.includes('france')) {
+        console.log('Start France family armorial crawling')
+        await FranceFamilyArmorialByRegion.crawlPage(emblemRepo)
+        console.log('Start France municipality armorial crawling')
+        await FranceMunicipalityArmorial.crawlPage(emblemRepo)
+    }
+
+    if (countries.includes('belgium')) {
+        console.log('Start Belgium family armorial crawling')
+        await BelgiumFamilyArmorial.crawlPage(emblemRepo)
+        console.log('Start Belgium municipality armorial crawling')
+        await BelgiumMunicipalityArmorial.crawlPage(emblemRepo)
+    }
 
     if (ALGOLIA_INDEXING || ELASTIC_INDEXING) {
         console.log('Start indexing')
