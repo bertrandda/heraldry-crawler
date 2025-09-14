@@ -12,6 +12,7 @@ import { MunicipalityArmorial as FranceMunicipalityArmorial } from '../src/lib/f
 import { FamilyArmorialByRegion as FranceFamilyArmorialByRegion } from '../src/lib/france/FamilyArmorialByRegion'
 import { MunicipalityArmorial as BelgiumMunicipalityArmorial } from '../src/lib/belgium/MunicipalityArmorial'
 import { FamilyArmorial as BelgiumFamilyArmorial } from '../src/lib/belgium/FamilyArmorial'
+import { MunicipalityArmorial as EuropeMunicipalityArmorial } from '../src/lib/europe/MunicipalityArmorial'
 import { LocalDataArmorial } from '../src/lib/LocalDataArmorial'
 
 async function main(): Promise<void> {
@@ -56,7 +57,7 @@ async function main(): Promise<void> {
 
     await emblemRepo.createQueryBuilder()
         .update()
-        .where('country IN (:...countries)', { countries })
+        .where('country IN (:...countries)', { countries: [...countries, ...EuropeMunicipalityArmorial.relatedCountry] })
         .set({ check: false })
         .execute()
 
@@ -75,6 +76,11 @@ async function main(): Promise<void> {
         await BelgiumFamilyArmorial.crawlPage(emblemRepo)
         console.log('Start Belgium municipality armorial crawling')
         await BelgiumMunicipalityArmorial.crawlPage(emblemRepo)
+    }
+
+    if (countries.includes('europe')) {
+        console.log('Start Europe municipality armorial crawling')
+        await EuropeMunicipalityArmorial.crawlPage(emblemRepo)
     }
 
     if (ALGOLIA_INDEXING || ELASTIC_INDEXING) {
