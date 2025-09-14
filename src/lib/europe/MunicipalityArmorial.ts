@@ -77,80 +77,96 @@ export class MunicipalityArmorial {
             await Promise.all($('.mw-heading2').get().map(async (hElem, i) => {
                 if (process.env.NODE_ENV !== 'prod' && i > 10) return false
                 const country = $(hElem).find('h2').text().trim()
-                let next = $(hElem).next()
+                const siblings = $(hElem).nextUntil('.mw-heading2')
 
-                let region = ''
-                if (next.hasClass('mw-heading3')) {
-                    region = next.find('h3').text().trim()
-                    next = next.next()
-                }
-
-                await Promise.all($(next).find('tr').map(async (i, elem) => {
-                    const emblemName = MunicipalityArmorial.extractName($, $(elem).find('td').next())
-                    if (!emblemName) return false
-
-                    let emblem
-                    let updated = false
-                    const slug = slugify(`${region} ${emblemName}`)
-
-                    try {
-                        emblem = await repository.findOneByOrFail({ slug, armorial: this.armorialName })
-                    } catch (e) {
-                        emblem = new Emblem()
-                        emblem.slug = slug
-                        emblem.name = emblemName
-                        emblem.armorial = this.armorialName
-                        updated = true
+                const splitSiblings: cheerio.Element[][] = []
+                siblings.each((i, e) => {
+                    if ($(e).hasClass('mw-heading3')) {
+                        return splitSiblings.push([e])
                     }
 
-                    emblem.country = translateCountry(country, true)
-                    emblem.path = `/ville/${slugify(translateCountry(emblem.country))}${region.length > 0 ? `/${slugify(region)}` : ''}/${slugify(emblemName)}`
-
-                    let newImageUrl = optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
-                    newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
-                    if (emblem.imageUrl !== newImageUrl) {
-                        emblem.imageUrl = newImageUrl
-                        emblem.credits = null
-                        emblem.size = null
-                        updated = true
+                    if (splitSiblings.length > 0) {
+                        return splitSiblings[splitSiblings.length - 1].push(e)
                     }
 
-                    if (emblem.sourceUrl !== url) {
-                        emblem.sourceUrl = url
-                        updated = true
-                    }
+                    return splitSiblings.push([e])
+                })
 
-                    const emblemSubtitle = MunicipalityArmorial.extractSubtitle($, $(elem).find('td').next(), emblemName)
-                    if (emblem.subtitle !== emblemSubtitle) {
-                        emblem.subtitle = emblemSubtitle
-                        updated = true
+                await Promise.all(splitSiblings.map(async (group) => {
+                    let region = ''
+                    if ($(group[0]).hasClass('mw-heading3')) {
+                        region = $(group[0]).find('h3').text().trim()
+                        group.shift()
                     }
-                    const { html: newDescription, text: newDescriptionText } = MunicipalityArmorial.extractDescriptions($, $(elem).find('td').next())
-                    if (emblem.description !== newDescription) {
-                        emblem.description = newDescription
-                        updated = true
-                    }
+                    await Promise.all(group.map(async (s) => {
+                        await Promise.all($(s).find('tr').map(async (i, elem) => {
+                            const emblemName = MunicipalityArmorial.extractName($, $(elem).find('td').next())
+                            if (!emblemName) return false
 
-                    if (emblem.descriptionText !== newDescriptionText) {
-                        emblem.descriptionText = newDescriptionText
-                        updated = true
-                    }
+                            let emblem
+                            let updated = false
+                            const slug = slugify(`${region} ${emblemName}`)
 
-                    emblem.updatedAt = updated ? new Date() : emblem.updatedAt
-                    emblem.check = true
+                            try {
+                                emblem = await repository.findOneByOrFail({ slug, armorial: this.armorialName })
+                            } catch (e) {
+                                emblem = new Emblem()
+                                emblem.slug = slug
+                                emblem.name = emblemName
+                                emblem.armorial = this.armorialName
+                                updated = true
+                            }
 
-                    try {
-                        if (emblem.id) {
-                            const { id, ...partEmblem } = emblem
-                            await repository.update({ id }, partEmblem)
-                        } else {
-                            await repository.insert(emblem)
-                        }
-                    } catch (error) {
-                        if (!(error instanceof QueryFailedError && error.driverError.code === 'SQLITE_CONSTRAINT')) {
-                            console.log(error)
-                        }
-                    }
+                            emblem.country = translateCountry(country, true)
+                            emblem.path = `/ville/${slugify(translateCountry(emblem.country))}${region.length > 0 ? `/${slugify(region)}` : ''}/${slugify(emblemName)}`
+
+                            let newImageUrl = optimizeImageUrl($(elem).find('.mw-file-description img').attr('src'))
+                            newImageUrl = newImageUrl ? 'https:' + newImageUrl : 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Blason_%C3%A0_dessiner.svg'
+                            if (emblem.imageUrl !== newImageUrl) {
+                                emblem.imageUrl = newImageUrl
+                                emblem.credits = null
+                                emblem.size = null
+                                updated = true
+                            }
+
+                            if (emblem.sourceUrl !== url) {
+                                emblem.sourceUrl = url
+                                updated = true
+                            }
+
+                            const emblemSubtitle = MunicipalityArmorial.extractSubtitle($, $(elem).find('td').next(), emblemName)
+                            if (emblem.subtitle !== emblemSubtitle) {
+                                emblem.subtitle = emblemSubtitle
+                                updated = true
+                            }
+                            const { html: newDescription, text: newDescriptionText } = MunicipalityArmorial.extractDescriptions($, $(elem).find('td').next())
+                            if (emblem.description !== newDescription) {
+                                emblem.description = newDescription
+                                updated = true
+                            }
+
+                            if (emblem.descriptionText !== newDescriptionText) {
+                                emblem.descriptionText = newDescriptionText
+                                updated = true
+                            }
+
+                            emblem.updatedAt = updated ? new Date() : emblem.updatedAt
+                            emblem.check = true
+
+                            try {
+                                if (emblem.id) {
+                                    const { id, ...partEmblem } = emblem
+                                    await repository.update({ id }, partEmblem)
+                                } else {
+                                    await repository.insert(emblem)
+                                }
+                            } catch (error) {
+                                if (!(error instanceof QueryFailedError && error.driverError.code === 'SQLITE_CONSTRAINT')) {
+                                    console.log(error)
+                                }
+                            }
+                        }))
+                    }))
                 }))
                 return
             }))
