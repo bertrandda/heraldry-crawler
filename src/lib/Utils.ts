@@ -32,9 +32,22 @@ export const snakeToCamel = (input: string): string => {
     )
 }
 
-export const translateCountry = (country: string): string => {
-    return {
-        'france': 'France',
+export const translateCountry = (country: string, reverse: boolean = false): string => {
+    const translation = {
+        'austria': 'Autriche',
         'belgium': 'Belgique',
-    }[country] || country
+        'czech-republic': 'Tchéquie',
+        'denmark': 'Danemark',
+        'finland': 'Finlande',
+        'france': 'France',
+        'germany': 'Allemagne',
+        'irlande': 'Irlande',
+        'italy': 'Italie',
+        'romania': 'Roumanie',
+        'spain': 'Espagne',
+        'sweden': 'Suède',
+        'united-kingdom': 'Royaume-Uni',
+    }
+
+    return Object.entries(translation).find(([key, value]) => key === country || value === country)?.[reverse ? 0 : 1] || country
 }
