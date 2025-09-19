@@ -46,9 +46,15 @@ export default class WikiUtils {
         const geoLocElem = $('tr:contains("Coordonnées")')
         const popElem = $('tr:contains("Population")')
 
-        const lon = $(geoLocElem).find('td a').attr('data-lon') ? Number($(geoLocElem).find('td a').attr('data-lon')) : null
-        const lat = $(geoLocElem).find('td a').attr('data-lat') ? Number($(geoLocElem).find('td a').attr('data-lat')) : null
+        let lon = $(geoLocElem).find('td a').attr('data-lon') ? Number($(geoLocElem).find('td a').attr('data-lon')) : null
+        let lat = $(geoLocElem).find('td a').attr('data-lat') ? Number($(geoLocElem).find('td a').attr('data-lat')) : null
         const population = $(popElem).find('td').text().match(/^([0-9]|\s)+/)?.[0].replace(/\s/g, '') ? Number($(popElem).find('td').text().match(/^([0-9]|\s)+/)?.[0].replace(/\s/g, '')) : null
+
+        if (lon === null || lat === null) {
+            const coordinates = $.html().match(/coordinates\\\\\\&quot;:\[(\d+\.?\d*),(\d+\.?\d*)\]/)
+            lon = Number(coordinates[1])
+            lat = Number(coordinates[2])
+        }
 
         return {
             ...(lon && { lon }),
